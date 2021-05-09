@@ -17,21 +17,22 @@ Structure
     ├── boost/ : Contents of Boost includes directory (generated)
     ├── Boost_README_[version].md : Boost README file (generated)
     ├── LICENSE_1_0.txt : Boost license (generated)
-    ├── make_headers.sh : script to create generated files
+    ├── make_headers.py : script to create generated files
     └── README.rst : this README file
 
 Updating
 --------
 
-To regenerate the header files or update to a new version of boost, the
-`make_headers.sh` script can be modified and run on a Linux or MacOS machine
-that has access to the internet.  It will automatically populate the `boost/`
-directory with the generated header files from a minimal build.  It can run
-very simply as follows:
+To regenerate the header files or update to a new version of Boost, the
+`make_headers.py` script can be modified and run on a Linux, MacOS, or Windows
+machine that has access to the internet.  It will automatically populate the
+`boost/` directory with the generated header files from a minimal build.  It can
+run very simply as follows:
 
 .. code-block:: bash
 
-    source make_headers.sh
+    python make_headers.py -v --boost-version 1.75.0
 
-To update the version of Boost, modify the `BOOST_MAJOR`, `BOOST_MINOR`,
-and `BOOST_PATCH` variables at the top of `make_headers.sh`
+To update the version of Boost, give a different Boost version to the
+`--boost-version` option in the format: `[major].[minor].[patch]`.
+The `-v` option is optional and turns on verbose logging.
