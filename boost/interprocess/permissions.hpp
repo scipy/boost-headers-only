@@ -79,20 +79,20 @@ class permissions
    public:
    //!Constructs a permissions object from a user provided os-dependent
    //!permissions.
-   permissions(os_permissions_type type) BOOST_NOEXCEPT
+   permissions(os_permissions_type type)
       : m_perm(type)
    {}
 
    //!Constructs a default permissions object:
    //!A null security attributes pointer for windows or 0644
    //!for UNIX.
-   permissions() BOOST_NOEXCEPT
+   permissions()
    {  set_default(); }
 
    //!Sets permissions to default values:
    //!A null security attributes pointer for windows or 0644
    //!for UNIX.
-   void set_default() BOOST_NOEXCEPT
+   void set_default()
    {
       #if defined (BOOST_INTERPROCESS_WINDOWS)
       m_perm = 0;
@@ -103,7 +103,7 @@ class permissions
 
    //!Sets permissions to unrestricted access:
    //!A null DACL for windows or 0666 for UNIX.
-   void set_unrestricted() BOOST_NOEXCEPT
+   void set_unrestricted()
    {
       #if defined (BOOST_INTERPROCESS_WINDOWS)
       m_perm = &ipcdetail::unrestricted_permissions_holder<0>::unrestricted;
@@ -114,12 +114,12 @@ class permissions
 
    //!Sets permissions from a user provided os-dependent
    //!permissions.
-   void set_permissions(os_permissions_type perm) BOOST_NOEXCEPT
+   void set_permissions(os_permissions_type perm)
    {  m_perm = perm; }
 
    //!Returns stored os-dependent
    //!permissions
-   os_permissions_type get_permissions() const BOOST_NOEXCEPT
+   os_permissions_type get_permissions() const
    {  return m_perm; }
 };
 

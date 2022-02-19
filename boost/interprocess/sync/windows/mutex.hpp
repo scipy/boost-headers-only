@@ -33,14 +33,14 @@ namespace boost {
 namespace interprocess {
 namespace ipcdetail {
 
-class winapi_mutex
+class windows_mutex
 {
-   winapi_mutex(const winapi_mutex &);
-   winapi_mutex &operator=(const winapi_mutex &);
+   windows_mutex(const windows_mutex &);
+   windows_mutex &operator=(const windows_mutex &);
    public:
 
-   winapi_mutex();
-   ~winapi_mutex();
+   windows_mutex();
+   ~windows_mutex();
 
    void lock();
    bool try_lock();
@@ -52,7 +52,7 @@ class winapi_mutex
    const sync_id id_;
 };
 
-inline winapi_mutex::winapi_mutex()
+inline windows_mutex::windows_mutex()
    : id_(this)
 {
    sync_handles &handles =
@@ -66,14 +66,14 @@ inline winapi_mutex::winapi_mutex()
    (void)open_or_created;
 }
 
-inline winapi_mutex::~winapi_mutex()
+inline windows_mutex::~windows_mutex()
 {
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();
    handles.destroy_handle(this->id_);
 }
 
-inline void winapi_mutex::lock(void)
+inline void windows_mutex::lock(void)
 {
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();
@@ -82,7 +82,7 @@ inline void winapi_mutex::lock(void)
    mut.lock();
 }
 
-inline bool winapi_mutex::try_lock(void)
+inline bool windows_mutex::try_lock(void)
 {
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();
@@ -91,7 +91,7 @@ inline bool winapi_mutex::try_lock(void)
    return mut.try_lock();
 }
 
-inline bool winapi_mutex::timed_lock(const boost::posix_time::ptime &abs_time)
+inline bool windows_mutex::timed_lock(const boost::posix_time::ptime &abs_time)
 {
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();
@@ -100,7 +100,7 @@ inline bool winapi_mutex::timed_lock(const boost::posix_time::ptime &abs_time)
    return mut.timed_lock(abs_time);
 }
 
-inline void winapi_mutex::unlock(void)
+inline void windows_mutex::unlock(void)
 {
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();

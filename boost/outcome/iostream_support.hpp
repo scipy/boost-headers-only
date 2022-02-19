@@ -1,5 +1,5 @@
 /* iostream specialisations for result and outcome
-(C) 2017-2021 Niall Douglas <http://www.nedproductions.biz/> (21 commits)
+(C) 2017-2020 Niall Douglas <http://www.nedproductions.biz/> (21 commits)
 File Created: July 2017
 
 
@@ -42,29 +42,7 @@ namespace detail
 {
   template <class T> typename std::add_lvalue_reference<T>::type lvalueref() noexcept;
 
-  template <template <class, class> class ValueStorage, class T, class E> inline std::ostream &value_storage_out(std::ostream &s, const ValueStorage<T, E> &v)
-  {
-    s << static_cast<uint16_t>(v._status.status_value) << " " << v._status.spare_storage_value << " ";
-    if(v._status.have_value())
-    {
-      s << v._value;  // NOLINT
-    }
-    if(v._status.have_error())
-    {
-      s << v._error;  // NOLINT
-    }
-    return s;
-  }
-  template <template <class, class> class ValueStorage, class E> inline std::ostream &value_storage_out(std::ostream &s, const ValueStorage<void, E> &v)
-  {
-    s << static_cast<uint16_t>(v._status.status_value) << " " << v._status.spare_storage_value << " ";
-    if(v._status.have_error())
-    {
-      s << v._error;  // NOLINT
-    }
-    return s;
-  }
-  template <template <class, class> class ValueStorage, class T> inline std::ostream &value_storage_out(std::ostream &s, const ValueStorage<T, void> &v)
+  template <class T> inline std::ostream &operator<<(std::ostream &s, const value_storage_trivial<T> &v)
   {
     s << static_cast<uint16_t>(v._status.status_value) << " " << v._status.spare_storage_value << " ";
     if(v._status.have_value())
@@ -73,52 +51,23 @@ namespace detail
     }
     return s;
   }
-
-  template <class T, class E> inline std::ostream &operator<<(std::ostream &s, const value_storage_trivial<T, E> &v) { return value_storage_out(s, v); }
-  template <class T, class E> inline std::ostream &operator<<(std::ostream &s, const value_storage_nontrivial<T, E> &v) { return value_storage_out(s, v); }
-
-  template <template <class, class> class ValueStorage, class T, class E> inline std::istream &value_storage_in(std::istream &s, ValueStorage<T, E> &v)
+  inline std::ostream &operator<<(std::ostream &s, const value_storage_trivial<void> &v)
   {
-    using type = ValueStorage<T, E>;
-    v.~type();
-    new(&v) type;
-    uint16_t x, y;
-    s >> x >> y;
-    v._status.status_value = static_cast<detail::status>(x);
-    v._status.spare_storage_value = y;
+    s << static_cast<uint16_t>(v._status.status_value) << " " << v._status.spare_storage_value << " ";
+    return s;
+  }
+  template <class T> inline std::ostream &operator<<(std::ostream &s, const value_storage_nontrivial<T> &v)
+  {
+    s << static_cast<uint16_t>(v._status.status_value) << " " << v._status.spare_storage_value << " ";
     if(v._status.have_value())
     {
-      new(&v._value) decltype(v._value)();  // NOLINT
-      s >> v._value;                        // NOLINT
-    }
-    if(v._status.have_error())
-    {
-      new(&v._error) decltype(v._error)();  // NOLINT
-      s >> v._error;                        // NOLINT
+      s << v._value;  // NOLINT
     }
     return s;
   }
-  template <template <class, class> class ValueStorage, class E> inline std::istream &value_storage_in(std::istream &s, ValueStorage<void, E> &v)
+  template <class T> inline std::istream &operator>>(std::istream &s, value_storage_trivial<T> &v)
   {
-    using type = ValueStorage<void, E>;
-    v.~type();
-    new(&v) type;
-    uint16_t x, y;
-    s >> x >> y;
-    v._status.status_value = static_cast<detail::status>(x);
-    v._status.spare_storage_value = y;
-    if(v._status.have_error())
-    {
-      new(&v._error) decltype(v._error)();  // NOLINT
-      s >> v._error;                        // NOLINT
-    }
-    return s;
-  }
-  template <template <class, class> class ValueStorage, class T> inline std::istream &value_storage_in(std::istream &s, ValueStorage<T, void> &v)
-  {
-    using type = ValueStorage<T, void>;
-    v.~type();
-    new(&v) type;
+    v = value_storage_trivial<T>();
     uint16_t x, y;
     s >> x >> y;
     v._status.status_value = static_cast<detail::status>(x);
@@ -130,8 +79,29 @@ namespace detail
     }
     return s;
   }
-  template <class T, class E> inline std::istream &operator>>(std::istream &s, value_storage_trivial<T, E> &v) { return value_storage_in(s, v); }
-  template <class T, class E> inline std::istream &operator>>(std::istream &s, value_storage_nontrivial<T, E> &v) { return value_storage_in(s, v); }
+  inline std::istream &operator>>(std::istream &s, value_storage_trivial<devoid<void>> &v)
+  {
+    v = value_storage_trivial<devoid<void>>();
+    uint16_t x, y;
+    s >> x >> y;
+    v._status.status_value = static_cast<detail::status>(x);
+    v._status.spare_storage_value = y;
+    return s;
+  }
+  template <class T> inline std::istream &operator>>(std::istream &s, value_storage_nontrivial<T> &v)
+  {
+    v = value_storage_nontrivial<T>();
+    uint16_t x, y;
+    s >> x >> y;
+    v._status.status_value = static_cast<detail::status>(x);
+    v._status.spare_storage_value = y;
+    if(v._status.have_value())
+    {
+      new(&v._value) decltype(v._value)();  // NOLINT
+      s >> v._value;                        // NOLINT
+    }
+    return s;
+  }
   BOOST_OUTCOME_TEMPLATE(class T)
   BOOST_OUTCOME_TREQUIRES(BOOST_OUTCOME_TPRED(!std::is_constructible<std::error_code, T>::value))
   inline std::string safe_message(T && /*unused*/) { return {}; }

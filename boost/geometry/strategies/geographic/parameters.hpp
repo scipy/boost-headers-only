@@ -18,8 +18,8 @@
 #include <boost/geometry/formulas/thomas_inverse.hpp>
 #include <boost/geometry/formulas/vincenty_direct.hpp>
 #include <boost/geometry/formulas/vincenty_inverse.hpp>
-#include <boost/geometry/formulas/karney_direct.hpp>
-#include <boost/geometry/formulas/karney_inverse.hpp>
+//#include <boost/geometry/formulas/karney_direct.hpp>
+//#include <boost/geometry/formulas/karney_inverse.hpp>
 
 
 namespace boost { namespace geometry { namespace strategy
@@ -137,7 +137,7 @@ struct vincenty
             >
     {};
 };
-
+/*
 struct karney
 {
     template
@@ -146,13 +146,15 @@ struct karney
         bool EnableCoordinates = true,
         bool EnableReverseAzimuth = false,
         bool EnableReducedLength = false,
-        bool EnableGeodesicScale = false
+        bool EnableGeodesicScale = false,
+        size_t SeriesOrder = 8
     >
     struct direct
             : formula::karney_direct
               <
                   CT, EnableCoordinates, EnableReverseAzimuth,
-                  EnableReducedLength, EnableGeodesicScale
+                  EnableReducedLength, EnableGeodesicScale,
+                  SeriesOrder
               >
     {};
 
@@ -163,18 +165,20 @@ struct karney
         bool EnableAzimuth,
         bool EnableReverseAzimuth = false,
         bool EnableReducedLength = false,
-        bool EnableGeodesicScale = false
+        bool EnableGeodesicScale = false,
+        size_t SeriesOrder = 8
     >
     struct inverse
         : formula::karney_inverse
             <
                 CT, EnableDistance,
                 EnableAzimuth, EnableReverseAzimuth,
-                EnableReducedLength, EnableGeodesicScale
+                EnableReducedLength, EnableGeodesicScale,
+                SeriesOrder
             >
     {};
 };
-
+*/
 template <typename FormulaPolicy>
 struct default_order
 {
@@ -197,12 +201,12 @@ template<>
 struct default_order<vincenty>
     : std::integral_constant<unsigned int, 4>
 {};
-
+/*
 template<>
 struct default_order<karney>
     : std::integral_constant<unsigned int, 8>
 {};
-
+*/
 
 }}} // namespace boost::geometry::strategy
 

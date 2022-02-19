@@ -2,8 +2,8 @@
 
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2013-2020.
-// Modifications copyright (c) 2013-2020 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2013, 2014, 2017, 2018.
+// Modifications copyright (c) 2013-2018 Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -111,16 +111,12 @@ namespace detail { namespace overlay {
 class linear_intersections
 {
 public:
-    template
-    <
-        typename Point1, typename Point2, typename IntersectionResult,
-        typename Strategy
-    >
+    template <typename Point1, typename Point2, typename IntersectionResult, typename EqPPStrategy>
     linear_intersections(Point1 const& pi,
                          Point2 const& qi,
                          IntersectionResult const& result,
                          bool is_p_last, bool is_q_last,
-                         Strategy const& strategy)
+                         EqPPStrategy const& strategy)
     {
         int arrival_a = result.direction.arrival[0];
         int arrival_b = result.direction.arrival[1];
@@ -241,7 +237,7 @@ struct get_turn_info_for_endpoint
              typename TurnInfo,
              typename IntersectionInfo,
              typename OutputIterator,
-             typename Strategy
+             typename EqPPStrategy
     >
     static inline bool apply(UniqueSubRange1 const& range_p,
                              UniqueSubRange2 const& range_q,
@@ -249,7 +245,7 @@ struct get_turn_info_for_endpoint
                              IntersectionInfo const& inters,
                              method_type /*method*/,
                              OutputIterator out,
-                             Strategy const& strategy)
+                             EqPPStrategy const& strategy)
     {
         std::size_t ip_count = inters.i_info().count;
         // no intersection points
@@ -402,7 +398,8 @@ struct get_turn_info_for_endpoint
     {
         boost::ignore_unused(ip_index, tp_model);
 
-        auto const strategy = inters.strategy();
+        typename IntersectionInfo::side_strategy_type const& sides
+                = inters.get_side_strategy();
 
         if ( !first2 && !last2 )
         {
@@ -412,8 +409,8 @@ struct get_turn_info_for_endpoint
                 // may this give false positives for INTs?
                 typename IntersectionResult::point_type const&
                     inters_pt = inters.i_info().intersections[ip_index];
-                BOOST_GEOMETRY_ASSERT(ip_i2 == equals::equals_point_point(i2, inters_pt, strategy));
-                BOOST_GEOMETRY_ASSERT(ip_j2 == equals::equals_point_point(j2, inters_pt, strategy));
+                BOOST_GEOMETRY_ASSERT(ip_i2 == equals::equals_point_point(i2, inters_pt));
+                BOOST_GEOMETRY_ASSERT(ip_j2 == equals::equals_point_point(j2, inters_pt));
 #endif
                 if ( ip_i2 )
                 {
@@ -424,7 +421,6 @@ struct get_turn_info_for_endpoint
                 }
                 else if ( ip_j2 )
                 {
-                    auto const sides = strategy.side();
                     int const side_pj_q2 = sides.apply(range2.at(1), range2.at(2), range1.at(1));
                     int const side_pj_q1 = sides.apply(range2.at(0), range2.at(1), range1.at(1));
                     int const side_qk_q1 = sides.apply(range2.at(0), range2.at(1), range2.at(2));
@@ -464,8 +460,8 @@ struct get_turn_info_for_endpoint
                 // may this give false positives for INTs?
                 typename IntersectionResult::point_type const&
                     inters_pt = inters.i_info().intersections[ip_index];
-                BOOST_GEOMETRY_ASSERT(ip_i2 == equals::equals_point_point(i2, inters_pt, strategy));
-                BOOST_GEOMETRY_ASSERT(ip_j2 == equals::equals_point_point(j2, inters_pt, strategy));
+                BOOST_GEOMETRY_ASSERT(ip_i2 == equals::equals_point_point(i2, inters_pt));
+                BOOST_GEOMETRY_ASSERT(ip_j2 == equals::equals_point_point(j2, inters_pt));
 #endif
                 if ( ip_i2 )
                 {
@@ -476,7 +472,6 @@ struct get_turn_info_for_endpoint
                 }
                 else if ( ip_j2 )
                 {
-                    auto const sides = strategy.side();
                     int const side_pi_q2 = sides.apply(range2.at(1), range2.at(2), range1.at(0));
                     int const side_pi_q1 = sides.apply(range2.at(0), range2.at(1), range1.at(0));
                     int const side_qk_q1 = sides.apply(range2.at(0), range2.at(1), range2.at(2));

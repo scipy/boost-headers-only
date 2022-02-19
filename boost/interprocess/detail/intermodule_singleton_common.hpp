@@ -34,7 +34,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <typeinfo>
 #include <sstream>
 
 namespace boost{

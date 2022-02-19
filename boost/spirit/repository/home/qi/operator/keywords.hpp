@@ -294,7 +294,7 @@ namespace boost { namespace spirit { namespace repository { namespace qi
                     save = first;
                 }
             }
-            BOOST_UNREACHABLE_RETURN(false)
+            return false;
           }
 
         // Handle the mixed kwd and ikwd case
@@ -377,7 +377,7 @@ namespace boost { namespace spirit { namespace repository { namespace qi
                   }
                 }
             }
-            BOOST_UNREACHABLE_RETURN(false)
+            return false;
           }
 
         template <typename Context>

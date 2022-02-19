@@ -115,8 +115,7 @@ class winapi_semaphore_wrapper
    void *handle() const
    {  return m_sem_hnd; }
 
-   template <class CharT>
-   bool open_or_create( const CharT *name
+   bool open_or_create( const char *name
                       , long sem_count
                       , long max_count
                       , const permissions &perm

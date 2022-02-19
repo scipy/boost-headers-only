@@ -12,7 +12,6 @@
 
 #include <utility>
 #include <vector>
-#include <type_traits>
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/special_functions/factorials.hpp>
 #include <boost/math/tools/roots.hpp>
@@ -218,7 +217,7 @@ std::vector<T> legendre_p_zeros_imp(int n, const Policy& pol)
 } // namespace detail
 
 template <class T, class Policy>
-inline typename std::enable_if<policies::is_policy<Policy>::value, typename tools::promote_args<T>::type>::type
+inline typename boost::enable_if_c<policies::is_policy<Policy>::value, typename tools::promote_args<T>::type>::type
    legendre_p(int l, T x, const Policy& pol)
 {
    typedef typename tools::promote_args<T>::type result_type;
@@ -231,7 +230,7 @@ inline typename std::enable_if<policies::is_policy<Policy>::value, typename tool
 
 
 template <class T, class Policy>
-inline typename std::enable_if<policies::is_policy<Policy>::value, typename tools::promote_args<T>::type>::type
+inline typename boost::enable_if_c<policies::is_policy<Policy>::value, typename tools::promote_args<T>::type>::type
    legendre_p_prime(int l, T x, const Policy& pol)
 {
    typedef typename tools::promote_args<T>::type result_type;
@@ -273,7 +272,7 @@ inline std::vector<T> legendre_p_zeros(int l)
 }
 
 template <class T, class Policy>
-inline typename std::enable_if<policies::is_policy<Policy>::value, typename tools::promote_args<T>::type>::type
+inline typename boost::enable_if_c<policies::is_policy<Policy>::value, typename tools::promote_args<T>::type>::type
    legendre_q(unsigned l, T x, const Policy& pol)
 {
    typedef typename tools::promote_args<T>::type result_type;

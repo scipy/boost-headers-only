@@ -436,12 +436,13 @@ struct cartesian_segments
         point2_type const& q1 = range_q.at(0);
         point2_type const& q2 = range_q.at(1);
 
-        bool const p_is_point = equals_point_point(p1, p2);
-        bool const q_is_point = equals_point_point(q1, q2);
+        using geometry::detail::equals::equals_point_point;
+        bool const p_is_point = equals_point_point(p1, p2, point_in_point_strategy_type());
+        bool const q_is_point = equals_point_point(q1, q2, point_in_point_strategy_type());
 
         if (p_is_point && q_is_point)
         {
-            return equals_point_point(p1, q2)
+            return equals_point_point(p1, q2, point_in_point_strategy_type())
                 ? Policy::degenerate(p, true)
                 : Policy::disjoint()
                 ;
@@ -770,12 +771,6 @@ private:
               : ( ca1 > cb1 ? 0
                 : ca1 < cb2 ? 4
                 : 2 );
-    }
-
-    template <typename Point1, typename Point2>
-    static inline bool equals_point_point(Point1 const& point1, Point2 const& point2)
-    {
-        return strategy::within::cartesian_point_point::apply(point1, point2);
     }
 };
 

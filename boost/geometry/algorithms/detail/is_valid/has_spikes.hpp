@@ -45,27 +45,64 @@ namespace boost { namespace geometry
 namespace detail { namespace is_valid
 {
 
+template <typename Point, typename Strategy>
+struct equal_to
+{
+    Point const& m_point;
+
+    equal_to(Point const& point)
+        : m_point(point)
+    {}
+
+    template <typename OtherPoint>
+    inline bool operator()(OtherPoint const& other) const
+    {
+        return geometry::detail::equals::equals_point_point(m_point, other, Strategy());
+    }
+};
+
+template <typename Point, typename Strategy>
+struct not_equal_to
+{
+    Point const& m_point;
+
+    not_equal_to(Point const& point)
+        : m_point(point)
+    {}
+
+    template <typename OtherPoint>
+    inline bool operator()(OtherPoint const& other) const
+    {
+        return ! geometry::detail::equals::equals_point_point(other, m_point, Strategy());
+    }
+};
+
+
 
 template <typename Range, closure_selector Closure>
 struct has_spikes
 {
-    template <typename Iterator, typename Strategy>
+    template <typename Iterator, typename SideStrategy>
     static inline Iterator find_different_from_first(Iterator first,
                                                      Iterator last,
-                                                     Strategy const& strategy)
+                                                     SideStrategy const& )
     {
-        if (first == last)
-            return last;
-        auto const& front = *first;
-        ++first;
-        return std::find_if(first, last, [&](auto const& pt) {
-            return ! equals::equals_point_point(pt, front, strategy);
-        });
+        typedef not_equal_to
+            <
+                typename point_type<Range>::type,
+                typename SideStrategy::equals_point_point_strategy_type
+            > not_equal;
+
+        BOOST_GEOMETRY_ASSERT(first != last);
+
+        Iterator second = first;
+        ++second;
+        return std::find_if(second, last, not_equal(*first));
     }
 
-    template <typename View, typename VisitPolicy, typename Strategy>
+    template <typename View, typename VisitPolicy, typename SideStrategy>
     static inline bool apply_at_closure(View const& view, VisitPolicy& visitor,
-                                        Strategy const& strategy,
+                                        SideStrategy const& strategy,
                                         bool is_linear)
     {
         boost::ignore_unused(visitor);
@@ -82,9 +119,10 @@ struct has_spikes
 
         iterator next = find_different_from_first(cur, boost::end(view),
                                                   strategy);
-        if (detail::is_spike_or_equal(*next, *cur, *prev, strategy.side()))
+        if (detail::is_spike_or_equal(*next, *cur, *prev, strategy))
         {
-            return ! visitor.template apply<failure_spikes>(is_linear, *cur);
+            return
+                ! visitor.template apply<failure_spikes>(is_linear, *cur);
         }
         else
         {
@@ -93,9 +131,9 @@ struct has_spikes
     }
 
 
-    template <typename VisitPolicy, typename Strategy>
+    template <typename VisitPolicy, typename SideStrategy>
     static inline bool apply(Range const& range, VisitPolicy& visitor,
-                             Strategy const& strategy)
+                             SideStrategy const& strategy)
     {
         boost::ignore_unused(visitor);
 
@@ -131,7 +169,7 @@ struct has_spikes
             // in is_spike_or_equal, but this order calls the side
             // strategy in the way to correctly detect the spikes,
             // also in geographic cases going over the pole
-            if (detail::is_spike_or_equal(*next, *cur, *prev, strategy.side()))
+            if (detail::is_spike_or_equal(*next, *cur, *prev, strategy))
             {
                 return
                     ! visitor.template apply<failure_spikes>(is_linestring, *cur);
@@ -141,8 +179,9 @@ struct has_spikes
             next = find_different_from_first(cur, boost::end(view), strategy);
         }
 
-        if (equals::equals_point_point(range::front(view), range::back(view),
-                                       strategy))
+        if (geometry::detail::equals::
+                equals_point_point(range::front(view), range::back(view),
+                                   strategy.get_equals_point_point_strategy()))
         {
             return apply_at_closure(view, visitor, strategy, is_linestring);
         }

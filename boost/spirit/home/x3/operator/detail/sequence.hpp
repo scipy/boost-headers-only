@@ -80,9 +80,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             typename fusion::result_of::begin<Attribute>::type
         >::type type;
 
-        static type call(Attribute& attribute)
+        static type call(Attribute& attr)
         {
-            return fusion::deref(fusion::begin(attribute));
+            return fusion::deref(fusion::begin(attr));
         }
     };
 
@@ -93,9 +93,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
         template <typename Attribute_>
         static Attribute_&
-        call(Attribute_& attribute)
+        call(Attribute_& attr)
         {
-            return attribute;
+            return attr;
         }
     };
 

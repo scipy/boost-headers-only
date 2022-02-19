@@ -19,29 +19,51 @@ namespace safe_numerics {
 template<typename R>
 struct checked_result {
     const safe_numerics_error m_e;
-    union contents {
+    const union {
         R m_r;
-        char const * const m_msg;
-        // contstructors for different types
-        constexpr contents(const R & r) noexcept : m_r(r){}
-        constexpr contents(char const * msg) noexcept : m_msg(msg) {}
-        constexpr operator R () noexcept {
-            return m_r;
-        }
-        constexpr operator char const * () noexcept {
-            return m_msg;
-        }
+        char const * m_msg;
     };
-    contents m_contents;
-
+    
     // don't permit construction without initial value;
     checked_result() = delete;
+
+    // note: I implemented the following non-default copy and move
+    // constructors because I thought I needed to do this in order
+    // to make them constexpr.  Turns out though that doing this creates
+    // a syntax error because the assignment results in error due
+    // to assignment "outside of object lifetime".  I think this could
+    // be addressed by replacing the anonymous union above with a
+    // named union.  This would create some syntax changes which would
+    // ripple through some parts of th program.  So for now, we'll just
+    // rely on the default copy and move constructors.
+    #if 0
+    // copy constructor
+    constexpr /*explicit*/ checked_result(const checked_result & r) noexpect :
+        m_e(r.m_e)
+    {
+        if(safe_numerics_error::success == r.m_e)
+            m_r = r.m_r;
+        else
+            m_msg = r.m_msg;
+    }
+
+    // move constructor
+    constexpr /*explicit*/ checked_result(checked_result && r) noexcept :
+        m_e(r.m_e)
+    {
+        if(safe_numerics_error::success == r.m_e)
+            m_r = r.m_r;
+        else
+            m_msg = r.m_msg;
+    }
+    #endif
+
     checked_result(const checked_result & r) = default;
     checked_result(checked_result && r) = default;
     
     constexpr /*explicit*/ checked_result(const R & r) noexcept :
         m_e(safe_numerics_error::success),
-        m_contents{r}
+        m_r(r)
     {}
 
     constexpr /*explicit*/ checked_result(
@@ -49,7 +71,7 @@ struct checked_result {
         const char * msg = ""
     )  noexcept :
         m_e(e),
-        m_contents{msg}
+        m_msg(msg)
     {
         assert(m_e != safe_numerics_error::success);
     }
@@ -64,9 +86,9 @@ struct checked_result {
             "T must be convertible to R"
         );
         if(safe_numerics_error::success == t.m_e)
-            m_contents.m_r = t.m_r;
+            m_r = t.m_r;
         else
-            m_contents.m_msg = t.m_msg;
+            m_msg = t.m_msg;
     }
 
     constexpr bool exception() const {
@@ -74,25 +96,25 @@ struct checked_result {
     }
 
     // accesors
-    constexpr operator R() const noexcept{
+    constexpr operator R() const  noexcept{
         // don't assert here.  Let the library catch these errors
         // assert(! exception());
-        return m_contents.m_r;
+        return m_r;
     }
     
-    constexpr operator safe_numerics_error () const noexcept{
+    constexpr operator safe_numerics_error () const  noexcept{
         // note that this is a legitimate operation even when
         // the operation was successful - it will return success
         return m_e;
     }
-    constexpr operator const char *() const noexcept{
+    constexpr operator const char *() const  noexcept{
         assert(exception());
-        return m_contents.m_msg;
+        return m_msg;
     }
 
     // disallow assignment
     checked_result & operator=(const checked_result &) = delete;
-}; // checked_result
+};
 
 template <class R>
 class make_checked_result {

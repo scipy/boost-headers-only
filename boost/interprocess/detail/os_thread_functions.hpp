@@ -33,12 +33,13 @@
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/workaround.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include <boost/interprocess/detail/posix_time_types_wrk.hpp>
 #include <cstddef>
 #include <ostream>
 
 #if defined(BOOST_INTERPROCESS_WINDOWS)
 #  include <boost/interprocess/detail/win32_api.hpp>
-#  include <boost/winapi/thread.hpp>
+#  include <process.h>
 #else
 #  include <pthread.h>
 #  include <unistd.h>
@@ -518,9 +519,9 @@ inline void get_pid_str(pid_str_t &pid_str)
 
 #if defined(BOOST_INTERPROCESS_WINDOWS)
 
-inline int thread_create( OS_thread_t * thread, boost::ipwinapiext::LPTHREAD_START_ROUTINE_ start_routine, void* arg )
+inline int thread_create( OS_thread_t * thread, unsigned (__stdcall * start_routine) (void*), void* arg )
 {
-   void* h = boost::ipwinapiext::CreateThread(0, 0, start_routine, arg, 0, 0);
+   void* h = (void*)_beginthreadex( 0, 0, start_routine, arg, 0, 0 );
 
    if( h != 0 ){
       thread->m_handle = h;
@@ -529,6 +530,9 @@ inline int thread_create( OS_thread_t * thread, boost::ipwinapiext::LPTHREAD_STA
    else{
       return 1;
    }
+
+   thread->m_handle = (void*)_beginthreadex( 0, 0, start_routine, arg, 0, 0 );
+   return thread->m_handle != 0;
 }
 
 inline void thread_join( OS_thread_t thread)
@@ -572,7 +576,7 @@ class os_thread_func_ptr_deleter
 
 #if defined(BOOST_INTERPROCESS_WINDOWS)
 
-inline boost::winapi::DWORD_ __stdcall launch_thread_routine(boost::winapi::LPVOID_ pv)
+inline unsigned __stdcall launch_thread_routine( void * pv )
 {
    os_thread_func_ptr_deleter<abstract_thread> pt( static_cast<abstract_thread *>( pv ) );
    pt->run();

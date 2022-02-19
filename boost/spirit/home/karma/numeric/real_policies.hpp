@@ -11,6 +11,7 @@
 #endif
 
 #include <boost/config/no_tr1/cmath.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/type_traits/remove_const.hpp>
 
 #include <boost/spirit/home/support/char_class.hpp>
@@ -161,7 +162,8 @@ namespace boost { namespace spirit { namespace karma
         //
         //  Note:     If the trailing_zeros flag is not in effect additional
         //            comments apply. See the comment for the fraction_part()
-        //            function below.
+        //            function below. Moreover, this precision will be limited
+        //            to the value of std::numeric_limits<T>::digits10 + 1
         ///////////////////////////////////////////////////////////////////////
         static unsigned precision(T)
         {

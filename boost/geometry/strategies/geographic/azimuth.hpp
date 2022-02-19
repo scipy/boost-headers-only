@@ -1,6 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2016-2021 Oracle and/or its affiliates.
+// Copyright (c) 2016-2020 Oracle and/or its affiliates.
 // Contributed and/or modified by Vissarion Fisikopoulos, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -19,8 +19,6 @@
 #include <boost/geometry/strategies/azimuth.hpp>
 #include <boost/geometry/strategies/geographic/parameters.hpp>
 
-#include <boost/geometry/util/select_most_precise.hpp>
-
 
 namespace boost { namespace geometry
 {
@@ -36,14 +34,7 @@ template
 >
 class geographic
 {
-public:
-    template <typename T1, typename T2>
-    struct result_type
-        : geometry::select_most_precise
-              <
-                  T1, T2, CalculationType
-              >
-    {};
+public :
 
     typedef Spheroid model_type;
 
@@ -60,28 +51,28 @@ public:
         return m_spheroid;
     }
 
-    template <typename T1, typename T2, typename Result>
-    inline void apply(T1 const& lon1_rad, T1 const& lat1_rad,
-                      T2 const& lon2_rad, T2 const& lat2_rad,
-                      Result& a1, Result& a2) const
+    template <typename T>
+    inline void apply(T const& lon1_rad, T const& lat1_rad,
+                      T const& lon2_rad, T const& lat2_rad,
+                      T& a1, T& a2) const
     {
         compute<true, true>(lon1_rad, lat1_rad,
                             lon2_rad, lat2_rad,
                             a1, a2);
     }
-    template <typename T1, typename T2, typename Result>
-    inline void apply(T1 const& lon1_rad, T1 const& lat1_rad,
-                      T2 const& lon2_rad, T2 const& lat2_rad,
-                      Result& a1) const
+    template <typename T>
+    inline void apply(T const& lon1_rad, T const& lat1_rad,
+                      T const& lon2_rad, T const& lat2_rad,
+                      T& a1) const
     {
         compute<true, false>(lon1_rad, lat1_rad,
                              lon2_rad, lat2_rad,
                              a1, a1);
     }
-    template <typename T1, typename T2, typename Result>
-    inline void apply_reverse(T1 const& lon1_rad, T1 const& lat1_rad,
-                              T2 const& lon2_rad, T2 const& lat2_rad,
-                              Result& a2) const
+    template <typename T>
+    inline void apply_reverse(T const& lon1_rad, T const& lat1_rad,
+                              T const& lon2_rad, T const& lat2_rad,
+                              T& a2) const
     {
         compute<false, true>(lon1_rad, lat1_rad,
                              lon2_rad, lat2_rad,
@@ -94,13 +85,16 @@ private :
     <
         bool EnableAzimuth,
         bool EnableReverseAzimuth,
-        typename T1, typename T2, typename Result
+        typename T
     >
-    inline void compute(T1 const& lon1_rad, T1 const& lat1_rad,
-                        T2 const& lon2_rad, T2 const& lat2_rad,
-                        Result& a1, Result& a2) const
+    inline void compute(T const& lon1_rad, T const& lat1_rad,
+                        T const& lon2_rad, T const& lat2_rad,
+                        T& a1, T& a2) const
     {
-        typedef typename result_type<T1, T2>::type calc_t;
+        typedef std::conditional_t
+            <
+                std::is_void<CalculationType>::value, T, CalculationType
+            > calc_t;
 
         typedef typename FormulaPolicy::template inverse
             <
@@ -133,13 +127,14 @@ private :
 namespace services
 {
 
-template <>
-struct default_strategy<geographic_tag>
+template <typename CalculationType>
+struct default_strategy<geographic_tag, CalculationType>
 {
     typedef strategy::azimuth::geographic
         <
             strategy::andoyer,
-            srs::spheroid<double>
+            srs::spheroid<double>,
+            CalculationType
         > type;
 };
 

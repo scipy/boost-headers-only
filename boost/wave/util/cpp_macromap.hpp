@@ -180,11 +180,19 @@ protected:
         boost::optional<position_type> expanding_pos);
 
 //  Collect all arguments supplied to a macro invocation
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    template <typename IteratorT, typename ContainerT, typename SizeT>
+    typename std::vector<ContainerT>::size_type collect_arguments (
+        token_type const curr_token, std::vector<ContainerT> &arguments,
+        IteratorT &next, IteratorT const &end, SizeT const &parameter_count,
+        bool& seen_newline);
+#else
     template <typename IteratorT, typename ContainerT, typename SizeT>
     typename std::vector<ContainerT>::size_type collect_arguments (
         token_type const curr_token, std::vector<ContainerT> &arguments,
         IteratorT &next, IteratorT &endparen, IteratorT const &end,
         SizeT const &parameter_count, bool& seen_newline);
+#endif
 
     //  Expand a single macro name
     template <typename IteratorT, typename ContainerT>
@@ -464,9 +472,15 @@ macromap<ContextT>::add_macro(token_type const &name, bool has_parameters,
     std::swap((*p.first).second->macrodefinition, definition);
 
 // call the context supplied preprocessing hook
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    ctx.get_hooks().defined_macro(name, has_parameters,
+        (*p.first).second->macroparameters,
+        (*p.first).second->macrodefinition, is_predefined);
+#else
     ctx.get_hooks().defined_macro(ctx.derived(), name, has_parameters,
         (*p.first).second->macroparameters,
         (*p.first).second->macrodefinition, is_predefined);
+#endif
     return true;
 }
 
@@ -644,7 +658,11 @@ macromap<ContextT>::remove_macro(string_type const &name,
         // call the context supplied preprocessing hook function
         token_type tok(T_IDENTIFIER, name, pos);
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+        ctx.get_hooks().undefined_macro(tok);
+#else
         ctx.get_hooks().undefined_macro(ctx.derived(), tok);
+#endif
         return true;
     }
     else if (impl::is_special_macroname(ctx, name)) {
@@ -853,12 +871,21 @@ macromap<ContextT>::expand_tokensequence_worker(
 //      return the number of successfully detected non-empty arguments
 //
 ///////////////////////////////////////////////////////////////////////////////
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+template <typename ContextT>
+template <typename IteratorT, typename ContainerT, typename SizeT>
+inline typename std::vector<ContainerT>::size_type
+macromap<ContextT>::collect_arguments (token_type const curr_token,
+    std::vector<ContainerT> &arguments, IteratorT &next,
+    IteratorT const &end, SizeT const &parameter_count, bool& seen_newline)
+#else
 template <typename ContextT>
 template <typename IteratorT, typename ContainerT, typename SizeT>
 inline typename std::vector<ContainerT>::size_type
 macromap<ContextT>::collect_arguments (token_type const curr_token,
     std::vector<ContainerT> &arguments, IteratorT &next, IteratorT &endparen,
     IteratorT const &end, SizeT const &parameter_count, bool& seen_newline)
+#endif
 {
     using namespace boost::wave;
 
@@ -899,7 +926,9 @@ macromap<ContextT>::collect_arguments (token_type const curr_token,
                 else {
                 // found closing parenthesis
 //                    trim_sequence(argument);
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS == 0
                     endparen = next;
+#endif
                     if (parameter_count > 0) {
                         if (argument->empty() ||
                             impl::is_whitespace_only(*argument))
@@ -1206,11 +1235,17 @@ macromap<ContextT>::expand_replacement_list(
                     // __VA_OPT__ treats its arguments as an undifferentiated stream of tokens
                     // for our purposes we can consider it as a single argument
                     typename std::vector<ContainerT> va_opt_args(1, ContainerT(arg_start, cit));
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+                    ctx.get_hooks().expanding_function_like_macro(
+                        macroname, macroparameters, macrodefinitions,
+                        *cstart, va_opt_args);
+#else
                     suppress_expand = ctx.get_hooks().expanding_function_like_macro(
                         ctx.derived(),
                         macroname, macroparameters, macrodefinition,
                         *cstart, va_opt_args,
                         cstart, cit);
+#endif
 
                     if (suppress_expand) {
                         // leave the whole expression in place
@@ -1232,7 +1267,11 @@ macromap<ContextT>::expand_replacement_list(
                                                     va_expanded);
                         }
                         // run final hooks
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+                        ctx.get_hooks().expanded_macro(va_expanded);
+#else
                         ctx.get_hooks().expanded_macro(ctx.derived(), va_expanded);
+#endif
 
                         // updated overall expansion with va_opt results
                         expanded.splice(expanded.end(), va_expanded);
@@ -1473,17 +1512,25 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
         // called as a function-like macro
         impl::skip_to_token(ctx, first, last, T_LEFTPAREN, seen_newline);
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS == 0
         IteratorT seqstart = first;
         IteratorT seqend = first;
+#endif
 
         if (macro_def.is_functionlike) {
             // defined as a function-like macro
 
             // collect the arguments
             std::vector<ContainerT> arguments;
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+            typename std::vector<ContainerT>::size_type count_args =
+                collect_arguments(curr_token, arguments, first, last,
+                    macro_def.macroparameters.size(), seen_newline);
+#else
             typename std::vector<ContainerT>::size_type count_args =
                 collect_arguments(curr_token, arguments, first, seqend, last,
                     macro_def.macroparameters.size(), seen_newline);
+#endif
 
             std::size_t parm_count_required = macro_def.macroparameters.size();
 #if BOOST_WAVE_SUPPORT_CPP2A
@@ -1533,6 +1580,11 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
             }
 
             // inject tracing support
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+            ctx.get_hooks().expanding_function_like_macro(
+                macro_def.macroname, macro_def.macroparameters,
+                macro_def.macrodefinition, curr_token, arguments);
+#else
             if (ctx.get_hooks().expanding_function_like_macro(ctx.derived(),
                     macro_def.macroname, macro_def.macroparameters,
                     macro_def.macrodefinition, curr_token, arguments,
@@ -1548,6 +1600,7 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
                 first = ++seqstart;
                 return false;           // no further preprocessing required
             }
+#endif
 
             // expand the replacement list of this macro
             expand_replacement_list(macro_def.macrodefinition.begin(),
@@ -1562,6 +1615,10 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
         }
         else {
             // defined as an object-like macro
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+            ctx.get_hooks().expanding_object_like_macro(
+                macro_def.macroname, macro_def.macrodefinition, curr_token);
+#else
             if (ctx.get_hooks().expanding_object_like_macro(ctx.derived(),
                   macro_def.macroname, macro_def.macrodefinition, curr_token))
             {
@@ -1569,6 +1626,7 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
                 expanded.push_back(curr_token);
                 return false;           // no further preprocessing required
             }
+#endif
 
             bool found = false;
             impl::find_concat_operator concat_tag(found);
@@ -1599,6 +1657,10 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
         }
         else {
             // defined as an object-like macro (expand it)
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+            ctx.get_hooks().expanding_object_like_macro(
+                macro_def.macroname, macro_def.macrodefinition, curr_token);
+#else
             if (ctx.get_hooks().expanding_object_like_macro(ctx.derived(),
                   macro_def.macroname, macro_def.macrodefinition, curr_token))
             {
@@ -1607,6 +1669,7 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
                 ++first;                // skip macro name
                 return false;           // no further preprocessing required
             }
+#endif
 
             bool found = false;
             impl::find_concat_operator concat_tag(found);
@@ -1627,14 +1690,22 @@ macromap<ContextT>::expand_macro(ContainerT &expanded,
     // rescan the replacement list
     ContainerT expanded_list;
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    ctx.get_hooks().expanded_macro(replacement_list);
+#else
     ctx.get_hooks().expanded_macro(ctx.derived(), replacement_list);
+#endif
 
     rescan_replacement_list(
         curr_token, macro_def, replacement_list,
         expanded_list, expand_operator_defined,
         expand_operator_has_include, first, last);
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    ctx.get_hooks().rescanned_macro(expanded_list);
+#else
     ctx.get_hooks().rescanned_macro(ctx.derived(), expanded_list);
+#endif
 
     if (!expanding_pos)
         // set the expanding position for rescan
@@ -1670,6 +1741,10 @@ macromap<ContextT>::expand_predefined_macro(token_type const &curr_token,
     // construct a fake token for the macro's definition point
     token_type deftoken(T_IDENTIFIER, value, position_type("<built-in>"));
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    ctx.get_hooks().expanding_object_like_macro(
+        deftoken, Container(), curr_token);
+#else
     if (ctx.get_hooks().expanding_object_like_macro(ctx.derived(),
             deftoken, ContainerT(), curr_token))
     {
@@ -1677,6 +1752,7 @@ macromap<ContextT>::expand_predefined_macro(token_type const &curr_token,
         expanded.push_back(curr_token);
         return false;           // no further preprocessing required
     }
+#endif
 
     token_type replacement;
 
@@ -1712,11 +1788,19 @@ macromap<ContextT>::expand_predefined_macro(token_type const &curr_token,
     ContainerT replacement_list;
     replacement_list.push_back(replacement);
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    ctx.get_hooks().expanded_macro(replacement_list);
+#else
     ctx.get_hooks().expanded_macro(ctx.derived(), replacement_list);
+#endif
 
     expanded.push_back(replacement);
 
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    ctx.get_hooks().rescanned_macro(expanded);
+#else
     ctx.get_hooks().rescanned_macro(ctx.derived(), expanded);
+#endif
 
     return true;
 
@@ -1857,10 +1941,15 @@ macromap<ContextT>::resolve_operator_pragma(IteratorT &first,
     }
 
     std::vector<ContainerT> arguments;
+#if BOOST_WAVE_USE_DEPRECIATED_PREPROCESSING_HOOKS != 0
+    typename std::vector<ContainerT>::size_type count_args =
+        collect_arguments (pragma_token, arguments, first, last, 1, seen_newline);
+#else
     IteratorT endparen = first;
     typename std::vector<ContainerT>::size_type count_args =
         collect_arguments (pragma_token, arguments, first, endparen, last, 1,
             seen_newline);
+#endif
 
     // verify the parameter count
     if (pragma_token.get_position().get_file().empty())

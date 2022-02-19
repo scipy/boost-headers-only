@@ -63,8 +63,7 @@ class basic_managed_heap_memory
 
    //!Default constructor. Does nothing.
    //!Useful in combination with move semantics
-   basic_managed_heap_memory() BOOST_NOEXCEPT
-   {}
+   basic_managed_heap_memory(){}
 
    //!Destructor. Liberates the heap memory holding the managed data.
    //!Never throws.
@@ -83,11 +82,11 @@ class basic_managed_heap_memory
    }
 
    //!Moves the ownership of "moved"'s managed memory to *this. Does not throw
-   basic_managed_heap_memory(BOOST_RV_REF(basic_managed_heap_memory) moved) BOOST_NOEXCEPT
+   basic_managed_heap_memory(BOOST_RV_REF(basic_managed_heap_memory) moved)
    {  this->swap(moved);   }
 
    //!Moves the ownership of "moved"'s managed memory to *this. Does not throw
-   basic_managed_heap_memory &operator=(BOOST_RV_REF(basic_managed_heap_memory) moved) BOOST_NOEXCEPT
+   basic_managed_heap_memory &operator=(BOOST_RV_REF(basic_managed_heap_memory) moved)
    {
       basic_managed_heap_memory tmp(boost::move(moved));
       this->swap(tmp);
@@ -124,7 +123,7 @@ class basic_managed_heap_memory
 
    //!Swaps the ownership of the managed heap memories managed by *this and other.
    //!Never throws.
-   void swap(basic_managed_heap_memory &other) BOOST_NOEXCEPT
+   void swap(basic_managed_heap_memory &other)
    {
       base_t::swap(other);
       m_heapmem.swap(other.m_heapmem);

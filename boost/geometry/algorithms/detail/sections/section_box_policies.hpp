@@ -2,8 +2,8 @@
 
 // Copyright (c) 2015 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2018-2020.
-// Modifications copyright (c) 2018-2020, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2018.
+// Modifications copyright (c) 2018, Oracle and/or its affiliates.
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Use, modification and distribution is subject to the Boost Software License,
@@ -26,39 +26,28 @@ namespace boost { namespace geometry
 namespace detail { namespace section
 {
 
-template <typename Strategy>
+template <typename ExpandBoxStrategy>
 struct get_section_box
 {
-    get_section_box(Strategy const& strategy)
-        : m_strategy(strategy)
-    {}
-
     template <typename Box, typename Section>
-    inline void apply(Box& total, Section const& section) const
+    static inline void apply(Box& total, Section const& section)
     {
         assert_coordinate_type_equal(total, section.bounding_box);
-        geometry::expand(total, section.bounding_box, m_strategy);
+        geometry::expand(total, section.bounding_box,
+                         ExpandBoxStrategy());
     }
-
-    Strategy const& m_strategy;
 };
 
-template <typename Strategy>
+template <typename DisjointBoxBoxStrategy>
 struct overlaps_section_box
 {
-    overlaps_section_box(Strategy const& strategy)
-        : m_strategy(strategy)
-    {}
-
     template <typename Box, typename Section>
-    inline bool apply(Box const& box, Section const& section) const
+    static inline bool apply(Box const& box, Section const& section)
     {
         assert_coordinate_type_equal(box, section.bounding_box);
         return ! detail::disjoint::disjoint_box_box(box, section.bounding_box,
-                                                    m_strategy);
+                                                    DisjointBoxBoxStrategy());
     }
-
-    Strategy const& m_strategy;
 };
 
 

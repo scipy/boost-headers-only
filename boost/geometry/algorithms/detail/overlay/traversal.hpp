@@ -748,8 +748,7 @@ public :
 
             for (int i = 0; i < 2; i++)
             {
-                sbs.add(cluster_turn,
-                        cluster_turn.operations[i],
+                sbs.add(cluster_turn.operations[i],
                         cluster_turn_index, i, previous_seg_id,
                         m_geometry1, m_geometry2,
                         departure_turn);
@@ -824,8 +823,7 @@ public :
         // Add this turn to the sort-by-side sorter
         for (int i = 0; i < 2; i++)
         {
-            sbs.add(current_turn,
-                    current_turn.operations[i],
+            sbs.add(current_turn.operations[i],
                     turn_index, i, previous_seg_id,
                     m_geometry1, m_geometry2,
                     true);

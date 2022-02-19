@@ -10,7 +10,6 @@
 #define BOOST_RANDOM_DETAIL_NIEDERREITER_BASE2_TABLE_HPP
 
 #include <boost/config.hpp>
-#include <cstddef>
 
 namespace boost {
 namespace random {

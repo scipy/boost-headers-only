@@ -91,49 +91,49 @@ class scoped_ptr
 
    //!Assigns internal pointer as 0 and returns previous pointer. This will
    //!avoid deletion on destructor
-   pointer release() BOOST_NOEXCEPT
+   pointer release()
    {  pointer tmp(m_ptr);  m_ptr = 0;  return tmp; }
 
    //!Returns a reference to the object pointed to by the stored pointer.
    //!Never throws.
-   reference operator*() const BOOST_NOEXCEPT
+   reference operator*() const
    {  BOOST_ASSERT(m_ptr != 0);  return *m_ptr; }
 
    //!Returns the internal stored pointer.
    //!Never throws.
-   pointer &operator->() BOOST_NOEXCEPT
+   pointer &operator->()
    {  BOOST_ASSERT(m_ptr != 0);  return m_ptr;  }
 
    //!Returns the internal stored pointer.
    //!Never throws.
-   const pointer &operator->() const BOOST_NOEXCEPT
+   const pointer &operator->() const
    {  BOOST_ASSERT(m_ptr != 0);  return m_ptr;  }
 
    //!Returns the stored pointer.
    //!Never throws.
-   pointer & get() BOOST_NOEXCEPT
+   pointer & get()
    {  return m_ptr;  }
 
    //!Returns the stored pointer.
    //!Never throws.
-   const pointer & get() const BOOST_NOEXCEPT
+   const pointer & get() const
    {  return m_ptr;  }
 
    typedef pointer this_type::*unspecified_bool_type;
 
    //!Conversion to bool
    //!Never throws
-   operator unspecified_bool_type() const BOOST_NOEXCEPT
+   operator unspecified_bool_type() const
    {  return m_ptr == 0? 0: &this_type::m_ptr;  }
 
    //!Returns true if the stored pointer is 0.
    //!Never throws.
-   bool operator! () const BOOST_NOEXCEPT // never throws
+   bool operator! () const // never throws
    {  return m_ptr == 0;   }
 
    //!Exchanges the internal pointer and deleter with other scoped_ptr
    //!Never throws.
-   void swap(scoped_ptr & b) BOOST_NOEXCEPT // never throws
+   void swap(scoped_ptr & b) // never throws
    {
       ::boost::adl_move_swap(static_cast<Deleter&>(*this), static_cast<Deleter&>(b));
       ::boost::adl_move_swap(m_ptr, b.m_ptr);
@@ -148,7 +148,7 @@ class scoped_ptr
 //!Exchanges the internal pointer and deleter with other scoped_ptr
 //!Never throws.
 template<class T, class D> inline
-void swap(scoped_ptr<T, D> & a, scoped_ptr<T, D> & b) BOOST_NOEXCEPT
+void swap(scoped_ptr<T, D> & a, scoped_ptr<T, D> & b)
 {  a.swap(b); }
 
 //!Returns a copy of the stored pointer

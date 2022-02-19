@@ -35,17 +35,17 @@ namespace boost {
 namespace interprocess {
 namespace ipcdetail {
 
-class winapi_condition
+class windows_condition
 {
-   winapi_condition(const winapi_condition &);
-   winapi_condition &operator=(const winapi_condition &);
+   windows_condition(const windows_condition &);
+   windows_condition &operator=(const windows_condition &);
 
    public:
-   winapi_condition()
+   windows_condition()
       : m_condition_data()
    {}
 
-   ~winapi_condition()
+   ~windows_condition()
    {
       //Notify all waiting threads
       //to allow POSIX semantics on condition destruction
@@ -79,8 +79,8 @@ class winapi_condition
    struct condition_data
    {
       typedef boost::int32_t     integer_type;
-      typedef winapi_semaphore  semaphore_type;
-      typedef winapi_mutex      mutex_type;
+      typedef windows_semaphore  semaphore_type;
+      typedef windows_mutex      mutex_type;
 
       condition_data()
          : m_nwaiters_blocked(0)
@@ -109,12 +109,12 @@ class winapi_condition
       mutex_type      &get_mtx_unblock_lock()
       {  return m_mtx_unblock_lock;  }
 
-      integer_type            m_nwaiters_blocked;
-      integer_type            m_nwaiters_gone;
-      integer_type            m_nwaiters_to_unblock;
-      semaphore_type          m_sem_block_queue;
-      semaphore_type          m_sem_block_lock;
-      mutex_type              m_mtx_unblock_lock;
+      boost::int32_t    m_nwaiters_blocked;
+      boost::int32_t    m_nwaiters_gone;
+      boost::int32_t    m_nwaiters_to_unblock;
+      windows_semaphore m_sem_block_queue;
+      windows_semaphore m_sem_block_lock;
+      windows_mutex     m_mtx_unblock_lock;
    };
 
    ipcdetail::condition_8a_wrapper<condition_data> m_condition_data;

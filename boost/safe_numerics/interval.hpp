@@ -78,11 +78,11 @@ struct interval {
 };
 
 template<class R>
-constexpr inline interval<R> make_interval(){
+constexpr interval<R> make_interval(){
     return interval<R>();
 }
 template<class R>
-constexpr  inline interval<R> make_interval(const R &){
+constexpr interval<R> make_interval(const R &){
     return interval<R>();
 }
 
@@ -90,30 +90,30 @@ constexpr  inline interval<R> make_interval(const R &){
 // the most negative value is called "lowest" rather
 // than min
 template<>
-constexpr inline interval<float>::interval() :
+constexpr interval<float>::interval() :
     l(std::numeric_limits<float>::lowest()),
     u(std::numeric_limits<float>::max())
 {}
 template<>
-constexpr inline interval<double>::interval() :
+constexpr interval<double>::interval() :
     l(std::numeric_limits<double>::lowest()),
     u(std::numeric_limits<double>::max())
 {}
 
 template<typename T>
-constexpr inline interval<T> operator+(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator+(const interval<T> & t, const interval<T> & u){
     // adapted from https://en.wikipedia.org/wiki/Interval_arithmetic
     return {t.l + u.l, t.u + u.u};
 }
 
 template<typename T>
-constexpr inline interval<T> operator-(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator-(const interval<T> & t, const interval<T> & u){
     // adapted from https://en.wikipedia.org/wiki/Interval_arithmetic
     return {t.l - u.u, t.u - u.l};
 }
 
 template<typename T>
-constexpr inline interval<T> operator*(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator*(const interval<T> & t, const interval<T> & u){
     // adapted from https://en.wikipedia.org/wiki/Interval_arithmetic
     return utility::minmax<T>(
         std::initializer_list<T> {
@@ -128,7 +128,7 @@ constexpr inline interval<T> operator*(const interval<T> & t, const interval<T> 
 // interval division
 // note: presumes 0 is not included in the range of the denominator
 template<typename T>
-constexpr inline interval<T> operator/(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator/(const interval<T> & t, const interval<T> & u){
     assert(static_cast<bool>(u.excludes(T(0))));
     return utility::minmax<T>(
         std::initializer_list<T> {
@@ -143,7 +143,7 @@ constexpr inline interval<T> operator/(const interval<T> & t, const interval<T> 
 // modulus of two intervals.  This will give a new range of for the modulus.
 // note: presumes 0 is not included in the range of the denominator
 template<typename T>
-constexpr inline interval<T> operator%(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator%(const interval<T> & t, const interval<T> & u){
     assert(static_cast<bool>(u.excludes(T(0))));
     return utility::minmax<T>(
         std::initializer_list<T> {
@@ -156,7 +156,7 @@ constexpr inline interval<T> operator%(const interval<T> & t, const interval<T> 
 }
 
 template<typename T>
-constexpr inline interval<T> operator<<(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator<<(const interval<T> & t, const interval<T> & u){
     static_assert(
         boost::safe_numerics::Integer<T>::value,
         "left shift only defined for integral type"
@@ -173,7 +173,7 @@ constexpr inline interval<T> operator<<(const interval<T> & t, const interval<T>
 }
 
 template<typename T>
-constexpr inline interval<T> operator>>(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator>>(const interval<T> & t, const interval<T> & u){
     static_assert(
         boost::safe_numerics::Integer<T>::value,
         "right shift only defined for integral type"
@@ -199,7 +199,7 @@ constexpr interval<T> operator|(const interval<T> & t, const interval<T> & u){
 
 // intersection of two intervals
 template<typename T>
-constexpr inline interval<T> operator&(const interval<T> & t, const interval<T> & u){
+constexpr interval<T> operator&(const interval<T> & t, const interval<T> & u){
     const T & rl = std::max(t.l, u.l);
     const T & ru = std::min(t.u, u.u);
     return interval<T>(rl, ru);
@@ -207,12 +207,12 @@ constexpr inline interval<T> operator&(const interval<T> & t, const interval<T> 
 
 // determine whether two intervals intersect
 template<typename T>
-constexpr inline boost::logic::tribool intersect(const interval<T> & t, const interval<T> & u){
+constexpr boost::logic::tribool intersect(const interval<T> & t, const interval<T> & u){
     return t.u >= u.l || t.l <= u.u;
 }
 
 template<typename T>
-constexpr inline boost::logic::tribool operator<(
+constexpr boost::logic::tribool operator<(
     const interval<T> & t,
     const interval<T> & u
 ){
@@ -227,7 +227,7 @@ constexpr inline boost::logic::tribool operator<(
 }
 
 template<typename T>
-constexpr inline boost::logic::tribool operator>(
+constexpr boost::logic::tribool operator>(
     const interval<T> & t,
     const interval<T> & u
 ){
@@ -242,7 +242,7 @@ constexpr inline boost::logic::tribool operator>(
 }
 
 template<typename T>
-constexpr inline bool operator==(
+constexpr bool operator==(
     const interval<T> & t,
     const interval<T> & u
 ){
@@ -251,7 +251,7 @@ constexpr inline bool operator==(
 }
 
 template<typename T>
-constexpr inline bool operator!=(
+constexpr bool operator!=(
     const interval<T> & t,
     const interval<T> & u
 ){
@@ -259,7 +259,7 @@ constexpr inline bool operator!=(
 }
 
 template<typename T>
-constexpr inline boost::logic::tribool operator<=(
+constexpr boost::logic::tribool operator<=(
     const interval<T> & t,
     const interval<T> & u
 ){
@@ -267,7 +267,7 @@ constexpr inline boost::logic::tribool operator<=(
 }
 
 template<typename T>
-constexpr inline boost::logic::tribool operator>=(
+constexpr boost::logic::tribool operator>=(
     const interval<T> & t,
     const interval<T> & u
 ){

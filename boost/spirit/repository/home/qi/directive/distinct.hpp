@@ -94,9 +94,9 @@ namespace boost { namespace spirit { namespace repository {namespace qi
         }
 
         template <typename Context>
-        info what(Context& ctx) const
+        info what(Context& /*ctx*/) const
         {
-            return info("distinct", subject.what(ctx));
+            return info("distinct");
         }
 
         Subject subject;

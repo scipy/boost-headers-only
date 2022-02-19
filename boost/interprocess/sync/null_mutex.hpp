@@ -49,7 +49,7 @@ class null_mutex
 
    //!Constructor.
    //!Empty.
-   null_mutex() BOOST_NOEXCEPT {}
+   null_mutex(){}
 
    //!Destructor.
    //!Empty.

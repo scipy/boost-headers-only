@@ -93,11 +93,6 @@ public:
                          strategy::disjoint::spherical_box_box());
     }
 
-    Spheroid const& model() const
-    {
-        return m_spheroid;
-    }
-
 private:
     Spheroid m_spheroid;
 };

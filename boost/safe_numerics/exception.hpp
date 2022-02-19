@@ -45,7 +45,7 @@ enum class safe_numerics_error : std::uint8_t {
     uninitialized_value         // creating of uninitialized value
 };
 
-constexpr inline const char * literal_string(const safe_numerics_error & e){
+const char * literal_string(const safe_numerics_error & e){
     switch(e){
     case safe_numerics_error::success: return "success";
     case safe_numerics_error::positive_overflow_error: return "positive_overflow_error";

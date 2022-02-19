@@ -30,8 +30,7 @@ template
     typename Spheroid = srs::spheroid<double>,
     typename CalculationType = void
 >
-class geographic
-    : public strategies::detail::geographic_base<Spheroid>
+class geographic : strategies::detail::geographic_base<Spheroid>
 {
     using base_t = strategies::detail::geographic_base<Spheroid>;
 

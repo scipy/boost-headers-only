@@ -88,7 +88,8 @@ struct within<Point, Box, point_tag, box_tag>
     template <typename Strategy>
     static inline bool apply(Point const& point, Box const& box, Strategy const& strategy)
     {
-        return strategy.within(point, box).apply(point, box);
+        boost::ignore_unused(strategy);
+        return strategy.apply(point, box);
     }
 };
 
@@ -99,7 +100,8 @@ struct within<Box1, Box2, box_tag, box_tag>
     static inline bool apply(Box1 const& box1, Box2 const& box2, Strategy const& strategy)
     {
         assert_dimension_equal<Box1, Box2>();
-        return strategy.within(box1, box2).apply(box1, box2);
+        boost::ignore_unused(strategy);
+        return strategy.apply(box1, box2);
     }
 };
 

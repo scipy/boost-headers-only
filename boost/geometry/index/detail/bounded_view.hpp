@@ -19,8 +19,7 @@
 
 #include <boost/geometry/algorithms/envelope.hpp>
 #include <boost/geometry/core/static_assert.hpp>
-#include <boost/geometry/strategies/default_strategy.hpp>
-#include <boost/geometry/strategies/index/services.hpp>
+#include <boost/geometry/strategies/index.hpp>
 
 
 namespace boost { namespace geometry {
@@ -95,11 +94,24 @@ private:
 template <typename Segment, typename Box, typename Strategy, typename CSTag>
 struct bounded_view_base<Segment, Box, Strategy, segment_tag, box_tag, CSTag>
 {
+    template <typename S>
+    inline void envelope(Segment const& segment, S const& strategy)
+    {
+        geometry::envelope(segment, m_box,
+                           strategy.get_envelope_segment_strategy());
+    }
+
+    inline void envelope(Segment const& segment, default_strategy const& )
+    {
+        geometry::envelope(segment, m_box);
+    }
+
+public:
     typedef typename geometry::coordinate_type<Box>::type coordinate_type;
 
     bounded_view_base(Segment const& segment, Strategy const& strategy)
     {
-        geometry::envelope(segment, m_box, strategy);
+        envelope(segment, strategy);
     }
 
     template <std::size_t Dimension>
@@ -203,10 +215,10 @@ struct bounded_view<Geometry, BoundingGeometry, default_strategy, Tag, BoundingT
         <
             Geometry,
             BoundingGeometry,
-            typename strategies::index::services::default_strategy<Geometry>::type
+            typename strategy::index::services::default_strategy<Geometry>::type
         >
 {
-    typedef typename strategies::index::services::default_strategy
+    typedef typename strategy::index::services::default_strategy
         <
             Geometry
         >::type strategy_type;

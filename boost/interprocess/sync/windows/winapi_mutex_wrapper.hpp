@@ -98,8 +98,7 @@ class winapi_mutex_wrapper
    void *handle() const
    {  return m_mtx_hnd; }
 
-   template<class CharT>
-   bool open_or_create(const CharT *name, const permissions &perm)
+   bool open_or_create(const char *name, const permissions &perm)
    {
       if(m_mtx_hnd == 0){
          m_mtx_hnd = winapi::open_or_create_mutex

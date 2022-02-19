@@ -20,7 +20,6 @@
 
 
 #include <cstddef>
-#include <type_traits>
 
 #include <boost/geometry/core/assert.hpp>
 #include <boost/geometry/core/config.hpp>
@@ -97,13 +96,13 @@ inline void scale_box_to_integer_range(Box const& box,
 template
 <
     typename Point, typename RobustPoint, typename Geometry,
-    typename Factor, typename Strategy
+    typename Factor, typename EnvelopeStrategy
 >
 static inline void init_rescale_policy(Geometry const& geometry,
         Point& min_point,
         RobustPoint& min_robust_point,
         Factor& factor,
-        Strategy const& strategy)
+        EnvelopeStrategy const& strategy)
 {
     if (geometry::is_empty(geometry))
     {
@@ -124,15 +123,15 @@ static inline void init_rescale_policy(Geometry const& geometry,
 template
 <
     typename Point, typename RobustPoint, typename Geometry1, typename Geometry2,
-    typename Factor, typename Strategy1, typename Strategy2
+    typename Factor, typename EnvelopeStrategy1, typename EnvelopeStrategy2
 >
 static inline void init_rescale_policy(Geometry1 const& geometry1,
         Geometry2 const& geometry2,
         Point& min_point,
         RobustPoint& min_robust_point,
         Factor& factor,
-        Strategy1 const& strategy1,
-        Strategy2 const& strategy2)
+        EnvelopeStrategy1 const& strategy1,
+        EnvelopeStrategy2 const& strategy2)
 {
     // Get bounding boxes (when at least one of the geometries is not empty)
     bool const is_empty1 = geometry::is_empty(geometry1);
@@ -162,7 +161,13 @@ static inline void init_rescale_policy(Geometry1 const& geometry1,
             <
                 model::box<Point>
             >(geometry2, strategy2);
-        geometry::expand(env, env2, strategy1);
+        geometry::expand(env, env2,
+                         // TEMP - envelope umbrella strategy also contains
+                         //        expand strategies
+                         strategies::envelope::services::strategy_converter
+                            <
+                                EnvelopeStrategy1
+                            >::get(strategy1));
     }
 
     scale_box_to_integer_range(env, min_point, min_robust_point, factor);
@@ -200,9 +205,9 @@ struct rescale_policy_type<Point, true>
 template <typename Policy>
 struct get_rescale_policy
 {
-    template <typename Geometry, typename Strategy>
+    template <typename Geometry, typename EnvelopeStrategy>
     static inline Policy apply(Geometry const& geometry,
-                               Strategy const& strategy)
+                               EnvelopeStrategy const& strategy)
     {
         typedef typename point_type<Geometry>::type point_type;
         typedef typename geometry::coordinate_type<Geometry>::type coordinate_type;
@@ -223,10 +228,10 @@ struct get_rescale_policy
         return Policy(min_point, min_robust_point, factor);
     }
 
-    template <typename Geometry1, typename Geometry2, typename Strategy1, typename Strategy2>
+    template <typename Geometry1, typename Geometry2, typename EnvelopeStrategy1, typename EnvelopeStrategy2>
     static inline Policy apply(Geometry1 const& geometry1, Geometry2 const& geometry2,
-                               Strategy1 const& strategy1,
-                               Strategy2 const& strategy2)
+                               EnvelopeStrategy1 const& strategy1,
+                               EnvelopeStrategy2 const& strategy2)
     {
         typedef typename point_type<Geometry1>::type point_type;
         typedef typename geometry::coordinate_type<Geometry1>::type coordinate_type;
@@ -349,63 +354,177 @@ struct rescale_overlay_policy_type<Geometry1, Geometry2, CSTag, areal_tag, areal
 {};
 
 
+#ifndef DOXYGEN_NO_DETAIL
+namespace detail { namespace get_rescale_policy
+{
+
+
+// get envelope strategy compatible with relate strategy based on geometry tag
+// and strategy cs_tag
+template
+<
+    typename Geometry,
+    typename Strategy,
+    typename Tag = typename geometry::tag<Geometry>::type,
+    typename CSTag = typename Strategy::cs_tag
+>
+struct get_envelope_strategy
+{
+    typedef typename Strategy::envelope_strategy_type type;
+
+    static inline type apply(Strategy const& strategy)
+    {
+        return strategy.get_envelope_strategy();
+    }
+};
+
+template <typename Geometry, typename Strategy, typename CSTag>
+struct get_envelope_strategy<Geometry, Strategy, box_tag, CSTag>
+{
+    typedef typename Strategy::envelope_box_strategy_type type;
+
+    static inline type apply(Strategy const& )
+    {
+        return type();
+    }
+};
+
+// NOTE: within::xxx_point_point shouldn't have a getter for envelope strategy
+// so dispatch by CStag. In the future strategies should probably be redesigned.
+template <typename Geometry, typename Strategy>
+struct get_envelope_strategy<Geometry, Strategy, point_tag, cartesian_tag>
+{
+    typedef strategy::envelope::cartesian_point type;
+
+    static inline type apply(Strategy const& )
+    {
+        return type();
+    }
+};
+template <typename Geometry, typename Strategy>
+struct get_envelope_strategy<Geometry, Strategy, point_tag, spherical_tag>
+{
+    typedef strategy::envelope::spherical_point type;
+
+    static inline type apply(Strategy const& )
+    {
+        return type();
+    }
+};
+
+template <typename Geometry, typename Strategy>
+struct get_envelope_strategy<Geometry, Strategy, multi_point_tag, cartesian_tag>
+{
+    typedef strategy::envelope::cartesian_point type;
+
+    static inline type apply(Strategy const& )
+    {
+        return type();
+    }
+};
+template <typename Geometry, typename Strategy>
+struct get_envelope_strategy<Geometry, Strategy, multi_point_tag, spherical_tag>
+{
+    typedef strategy::envelope::spherical_point type;
+
+    static inline type apply(Strategy const& )
+    {
+        return type();
+    }
+};
+
+
+// utility for backward-compatibility either treating the argument as geometry
+// or envelope strategy for get_rescale_policy
+template
+<
+    typename Geometry2OrStrategy,
+    typename Tag = typename geometry::tag<Geometry2OrStrategy>::type
+>
+struct get_rescale_policy_geometry_or_strategy
+{
+    template <typename Policy, typename Geometry>
+    static inline Policy apply(Geometry const& geometry, Geometry2OrStrategy const& geometry2)
+    {
+        typename geometry::strategy::envelope::services::default_strategy
+            <
+                typename geometry::tag<Geometry>::type,
+                typename geometry::cs_tag<Geometry>::type
+            >::type strategy1;
+        typename geometry::strategy::envelope::services::default_strategy
+            <
+                typename geometry::tag<Geometry2OrStrategy>::type,
+                typename geometry::cs_tag<Geometry2OrStrategy>::type
+            >::type strategy2;
+
+        return detail::get_rescale_policy::get_rescale_policy
+            <
+                Policy
+            >::apply(geometry, geometry2, strategy1, strategy2);
+    }
+};
+
+template <typename Strategy>
+struct get_rescale_policy_geometry_or_strategy<Strategy, void>
+{
+    template <typename Policy, typename Geometry>
+    static inline Policy apply(Geometry const& geometry, Strategy const& strategy)
+    {
+        return detail::get_rescale_policy::get_rescale_policy
+            <
+                Policy
+            >::apply(geometry,
+                     get_envelope_strategy
+                        <
+                            Geometry, Strategy
+                        >::apply(strategy));
+    }
+};
+
+
+}} // namespace detail::get_rescale_policy
+#endif // DOXYGEN_NO_DETAIL
+
+
 template <typename Policy, typename Geometry>
 inline Policy get_rescale_policy(Geometry const& geometry)
 {
-    typename geometry::strategies::envelope::services::default_strategy
+    typename geometry::strategy::envelope::services::default_strategy
         <
-            Geometry,
-            model::box<typename point_type<Geometry>::type>
+            typename geometry::tag<Geometry>::type,
+            typename geometry::cs_tag<Geometry>::type
         >::type strategy;
 
     return detail::get_rescale_policy::get_rescale_policy<Policy>::apply(geometry, strategy);
 }
 
-template
-<
-    typename Policy, typename Geometry, typename Strategy,
-    std::enable_if_t<std::is_void<typename geometry::tag<Strategy>::type>::value, int> = 0
->
-inline Policy get_rescale_policy(Geometry const& geometry, Strategy const& strategy)
+template <typename Policy, typename Geometry, typename Geometry2OrStrategy>
+inline Policy get_rescale_policy(Geometry const& geometry, Geometry2OrStrategy const& geometry2_or_strategy)
 {
-    return detail::get_rescale_policy::get_rescale_policy
+    // if the second argument is a geometry use default strategy
+    // otherwise assume it's envelope strategy for the first argument
+    return detail::get_rescale_policy::get_rescale_policy_geometry_or_strategy
         <
-            Policy
-        >::apply(geometry, strategy);
+            Geometry2OrStrategy
+        > ::template apply<Policy, Geometry>(geometry, geometry2_or_strategy);
 }
 
-template
-<
-    typename Policy, typename Geometry1, typename Geometry2,
-    std::enable_if_t<! std::is_void<typename geometry::tag<Geometry2>::type>::value, int> = 0
->
-inline Policy get_rescale_policy(Geometry1 const& geometry1, Geometry2 const& geometry2)
-{
-    typename geometry::strategies::envelope::services::default_strategy
-        <
-            Geometry1,
-            model::box<typename point_type<Geometry1>::type>
-        >::type strategy1;
-    typename geometry::strategies::envelope::services::default_strategy
-        <
-            Geometry2,
-            model::box<typename point_type<Geometry2>::type>
-        >::type strategy2;
-
-    return detail::get_rescale_policy::get_rescale_policy
-        <
-            Policy
-        >::apply(geometry1, geometry2, strategy1, strategy2);
-}
-
-template <typename Policy, typename Geometry1, typename Geometry2, typename Strategy>
+template <typename Policy, typename Geometry1, typename Geometry2, typename IntersectionStrategy>
 inline Policy get_rescale_policy(Geometry1 const& geometry1, Geometry2 const& geometry2,
-                                 Strategy const& strategy)
+                                 IntersectionStrategy const& strategy)
 {
     return detail::get_rescale_policy::get_rescale_policy
             <
                 Policy
-            >::apply(geometry1, geometry2, strategy, strategy);
+            >::apply(geometry1, geometry2,
+                     detail::get_rescale_policy::get_envelope_strategy
+                        <
+                            Geometry1, IntersectionStrategy
+                        >::apply(strategy),
+                     detail::get_rescale_policy::get_envelope_strategy
+                        <
+                            Geometry2, IntersectionStrategy
+                        >::apply(strategy));
 }
 
 

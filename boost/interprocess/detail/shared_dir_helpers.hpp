@@ -34,33 +34,9 @@ namespace boost {
 namespace interprocess {
 namespace ipcdetail {
 
-template<class CharT>
-struct shared_dir_constants;
-
-template<>
-struct shared_dir_constants<char>
-{
-   static char dir_separator()
-   {  return '/';   }
-
-   static const char *dir_interprocess()
-   {  return "/boost_interprocess";   }
-};
-
-template<>
-struct shared_dir_constants<wchar_t>
-{
-   static wchar_t dir_separator()
-   {  return L'/';   }
-
-   static const wchar_t *dir_interprocess()
-   {  return L"/boost_interprocess";   }
-};
-
 #if defined(BOOST_INTERPROCESS_HAS_KERNEL_BOOTTIME)
    #if defined(BOOST_INTERPROCESS_WINDOWS)
       //This type will initialize the stamp
-      template<class CharT>
       struct windows_bootstamp
       {
          windows_bootstamp()
@@ -73,13 +49,12 @@ struct shared_dir_constants<wchar_t>
          }
          //Use std::string. Even if this will be constructed in shared memory, all
          //modules/dlls are from this process so internal raw pointers to heap are always valid
-         std::basic_string<CharT> stamp;
+         std::string stamp;
       };
 
-      template <class CharT>
-      inline void get_bootstamp(std::basic_string<CharT> &s, bool add = false)
+      inline void get_bootstamp(std::string &s, bool add = false)
       {
-         const windows_bootstamp<CharT> &bootstamp = windows_intermodule_singleton<windows_bootstamp<CharT> >::get();
+         const windows_bootstamp &bootstamp = windows_intermodule_singleton<windows_bootstamp>::get();
          if(add){
             s += bootstamp.stamp;
          }
@@ -127,8 +102,7 @@ struct shared_dir_constants<wchar_t>
    #endif
 #endif   //#if defined(BOOST_INTERPROCESS_HAS_KERNEL_BOOTTIME)
 
-template <class CharT>
-inline void get_shared_dir_root(std::basic_string<CharT> &dir_path)
+inline void get_shared_dir_root(std::string &dir_path)
 {
    #if defined (BOOST_INTERPROCESS_WINDOWS)
       winapi::get_shared_documents_folder(dir_path);
@@ -141,8 +115,8 @@ inline void get_shared_dir_root(std::basic_string<CharT> &dir_path)
       error_info err = system_error_code();
       throw interprocess_exception(err);
    }
-
-   dir_path += shared_dir_constants<CharT>::dir_interprocess();
+   //Remove final null.
+   dir_path += "/boost_interprocess";
 }
 
 #if defined(BOOST_INTERPROCESS_SHARED_DIR_FUNC) && defined(BOOST_INTERPROCESS_SHARED_DIR_PATH)
@@ -155,43 +129,35 @@ inline void get_shared_dir_root(std::basic_string<CharT> &dir_path)
    // get_shared_dir
    void get_shared_dir(std::string &shared_dir);
 
-   // When BOOST_INTERPROCESS_SHARED_DIR_FUNC is defined, users have to implement
-   // get_shared_dir
-   void get_shared_dir(std::wstring &shared_dir);
-
 #else
-
-template<class CharT>
-inline void get_shared_dir(std::basic_string<CharT> &shared_dir)
+inline void get_shared_dir(std::string &shared_dir)
 {
    #if defined(BOOST_INTERPROCESS_SHARED_DIR_PATH)
       shared_dir = BOOST_INTERPROCESS_SHARED_DIR_PATH;
    #else 
       get_shared_dir_root(shared_dir);
       #if defined(BOOST_INTERPROCESS_HAS_KERNEL_BOOTTIME)
-         shared_dir += shared_dir_constants<CharT>::dir_separator();
+         shared_dir += "/";
          get_bootstamp(shared_dir, true);
       #endif
    #endif
 }
 #endif
 
-template<class CharT>
-inline void shared_filepath(const CharT *filename, std::basic_string<CharT> &filepath)
+inline void shared_filepath(const char *filename, std::string &filepath)
 {
    get_shared_dir(filepath);
-   filepath += shared_dir_constants<CharT>::dir_separator();
+   filepath += "/";
    filepath += filename;
 }
 
-template<class CharT>
-inline void create_shared_dir_and_clean_old(std::basic_string<CharT> &shared_dir)
+inline void create_shared_dir_and_clean_old(std::string &shared_dir)
 {
    #if defined(BOOST_INTERPROCESS_SHARED_DIR_PATH) || defined(BOOST_INTERPROCESS_SHARED_DIR_FUNC)
       get_shared_dir(shared_dir);
    #else
       //First get the temp directory
-      std::basic_string<CharT> root_shared_dir;
+      std::string root_shared_dir;
       get_shared_dir_root(root_shared_dir);
 
       //If fails, check that it's because already exists
@@ -213,7 +179,7 @@ inline void create_shared_dir_and_clean_old(std::basic_string<CharT> &shared_dir
             }
          }
          //Now erase all old directories created in the previous boot sessions
-         std::basic_string<CharT> subdir = shared_dir;
+         std::string subdir = shared_dir;
          subdir.erase(0, root_shared_dir.size()+1);
          delete_subdirectories(root_shared_dir, subdir.c_str());
       #else
@@ -222,19 +188,17 @@ inline void create_shared_dir_and_clean_old(std::basic_string<CharT> &shared_dir
    #endif
 }
 
-template<class CharT>
-inline void create_shared_dir_cleaning_old_and_get_filepath(const CharT *filename, std::basic_string<CharT> &shared_dir)
+inline void create_shared_dir_cleaning_old_and_get_filepath(const char *filename, std::string &shared_dir)
 {
    create_shared_dir_and_clean_old(shared_dir);
-   shared_dir += shared_dir_constants<CharT>::dir_separator();
+   shared_dir += "/";
    shared_dir += filename;
 }
 
-template<class CharT>
-inline void add_leading_slash(const CharT *name, std::basic_string<CharT> &new_name)
+inline void add_leading_slash(const char *name, std::string &new_name)
 {
-   if(name[0] != shared_dir_constants<CharT>::dir_separator()){
-      new_name = shared_dir_constants<CharT>::dir_separator();
+   if(name[0] != '/'){
+      new_name = '/';
    }
    new_name += name;
 }

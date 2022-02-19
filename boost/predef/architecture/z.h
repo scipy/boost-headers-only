@@ -35,11 +35,6 @@ http://en.wikipedia.org/wiki/Z/Architecture[z/Architecture] architecture.
 #   define BOOST_ARCH_Z_AVAILABLE
 #endif
 
-#if BOOST_ARCH_Z
-#   undef BOOST_ARCH_WORD_BITS_64
-#   define BOOST_ARCH_WORD_BITS_64 BOOST_VERSION_NUMBER_AVAILABLE
-#endif
-
 #define BOOST_ARCH_Z_NAME "z/Architecture"
 
 #endif

@@ -127,26 +127,20 @@ class multipoint_linear_point
 {
 private:
     // structs for partition -- start
-    template <typename Strategy>
+    template <typename ExpandPointStrategy>
     struct expand_box_point
     {
-        expand_box_point(Strategy const& strategy)
-            : m_strategy(strategy)
-        {}
-
         template <typename Box, typename Point>
-        inline void apply(Box& total, Point const& point) const
+        static inline void apply(Box& total, Point const& point)
         {
-            geometry::expand(total, point, m_strategy);
+            geometry::expand(total, point, ExpandPointStrategy());
         }
-
-        Strategy const& m_strategy;
     };
 
-    template <typename Strategy>
+    template <typename EnvelopeStrategy>
     struct expand_box_segment
     {
-        explicit expand_box_segment(Strategy const& strategy)
+        explicit expand_box_segment(EnvelopeStrategy const& strategy)
             : m_strategy(strategy)
         {}
 
@@ -155,32 +149,31 @@ private:
         {
             geometry::expand(total,
                              geometry::return_envelope<Box>(segment, m_strategy),
-                             m_strategy);
+                             // TEMP - envelope umbrella strategy also contains
+                             //        expand strategies
+                             strategies::envelope::services::strategy_converter
+                                <
+                                    EnvelopeStrategy
+                                >::get(m_strategy));
         }
 
-        Strategy const& m_strategy;
+        EnvelopeStrategy const& m_strategy;
     };
 
-    template <typename Strategy>
+    template <typename DisjointPointBoxStrategy>
     struct overlaps_box_point
     {
-        explicit overlaps_box_point(Strategy const& strategy)
-            : m_strategy(strategy)
-        {}
-
         template <typename Box, typename Point>
-        inline bool apply(Box const& box, Point const& point) const
+        static inline bool apply(Box const& box, Point const& point)
         {
-            return ! geometry::disjoint(point, box, m_strategy);
+            return ! geometry::disjoint(point, box, DisjointPointBoxStrategy());
         }
-
-        Strategy const& m_strategy;
     };
 
-    template <typename Strategy>
+    template <typename DisjointStrategy>
     struct overlaps_box_segment
     {
-        explicit overlaps_box_segment(Strategy const& strategy)
+        explicit overlaps_box_segment(DisjointStrategy const& strategy)
             : m_strategy(strategy)
         {}
 
@@ -190,7 +183,7 @@ private:
             return ! geometry::disjoint(segment, box, m_strategy);
         }
 
-        Strategy const& m_strategy;
+        DisjointStrategy const& m_strategy;
     };
 
     template <typename OutputIterator, typename Strategy>
@@ -225,7 +218,7 @@ private:
         typedef geometry::segment_iterator<Linear const> const_iterator;
         typedef const_iterator iterator;
 
-        explicit segment_range(Linear const& linear)
+        segment_range(Linear const& linear)
             : m_linear(linear)
         {}
 
@@ -251,6 +244,11 @@ private:
     {
         item_visitor_type<OutputIterator, Strategy> item_visitor(oit, strategy);
 
+        typedef typename Strategy::envelope_strategy_type envelope_strategy_type;
+        typedef typename Strategy::disjoint_strategy_type disjoint_strategy_type;
+        typedef typename Strategy::disjoint_point_box_strategy_type disjoint_point_box_strategy_type;
+        typedef typename Strategy::expand_point_strategy_type expand_point_strategy_type;
+
         // TODO: disjoint Segment/Box may be called in partition multiple times
         // possibly for non-cartesian segments which could be slow. We should consider
         // passing a range of bounding boxes of segments after calculating them once.
@@ -263,10 +261,10 @@ private:
                         typename boost::range_value<MultiPoint>::type
                     >
             >::apply(multipoint, segment_range(linear), item_visitor,
-                     expand_box_point<Strategy>(strategy),
-                     overlaps_box_point<Strategy>(strategy),
-                     expand_box_segment<Strategy>(strategy),
-                     overlaps_box_segment<Strategy>(strategy));
+                     expand_box_point<expand_point_strategy_type>(),
+                     overlaps_box_point<disjoint_point_box_strategy_type>(),
+                     expand_box_segment<envelope_strategy_type>(strategy.get_envelope_strategy()),
+                     overlaps_box_segment<disjoint_strategy_type>(strategy.get_disjoint_strategy()));
 
         return oit;
     }

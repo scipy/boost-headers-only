@@ -54,11 +54,13 @@ private:
                              QueryRangeIterator& qit_min,
                              Distance& dist_min)
     {
-        using strategies::index::services::strategy_converter;
+        typedef strategy::index::services::from_strategy
+            <
+                Strategy
+            > index_strategy_from;
         typedef index::parameters
             <
-                index::linear<8>,
-                decltype(strategy_converter<Strategy>::get(strategy))
+                index::linear<8>, typename index_strategy_from::type
             > index_parameters_type;
         typedef index::rtree<RTreeValueType, index_parameters_type> rtree_type;
 
@@ -71,7 +73,7 @@ private:
         // create -- packing algorithm
         rtree_type rt(rtree_first, rtree_last,
                       index_parameters_type(index::linear<8>(),
-                                            strategy_converter<Strategy>::get(strategy)));
+                                            index_strategy_from::get(strategy)));
 
         RTreeValueType t_v;
         bool first = true;

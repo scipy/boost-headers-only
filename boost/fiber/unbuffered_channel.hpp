@@ -127,12 +127,11 @@ public:
 
     channel_op_status push( value_type const& value) {
         context * active_ctx = context::active();
-        slot s{ value, {} };
+        slot s{ value, active_ctx->create_waker() };
         for (;;) {
             if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
-            s.w = active_ctx->create_waker();
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 waiting_consumers_.notify_one();
@@ -161,12 +160,11 @@ public:
 
     channel_op_status push( value_type && value) {
         context * active_ctx = context::active();
-        slot s{ std::move( value), {} };
+        slot s{ std::move( value), active_ctx->create_waker() };
         for (;;) {
             if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
-            s.w = active_ctx->create_waker();
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 waiting_consumers_.notify_one();
@@ -210,13 +208,12 @@ public:
     channel_op_status push_wait_until( value_type const& value,
                                        std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         context * active_ctx = context::active();
-        slot s{ value, {} };
+        slot s{ value, active_ctx->create_waker() };
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
             if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
-            s.w = active_ctx->create_waker();
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 waiting_consumers_.notify_one();
@@ -256,13 +253,12 @@ public:
     channel_op_status push_wait_until( value_type && value,
                                        std::chrono::time_point< Clock, Duration > const& timeout_time_) {
         context * active_ctx = context::active();
-        slot s{ std::move( value), {} };
+        slot s{ std::move( value), active_ctx->create_waker() };
         std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         for (;;) {
             if ( BOOST_UNLIKELY( is_closed() ) ) {
                 return channel_op_status::closed;
             }
-            s.w = active_ctx->create_waker();
             if ( try_push_( & s) ) {
                 detail::spinlock_lock lk{ splk_consumers_ };
                 waiting_consumers_.notify_one();

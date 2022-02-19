@@ -16,11 +16,11 @@ namespace detail {
 template <class I>
 bool check_small_factors(const I& n)
 {
-   constexpr const std::uint32_t small_factors1[] = {
+   static const boost::uint32_t small_factors1[] = {
        3u, 5u, 7u, 11u, 13u, 17u, 19u, 23u};
-   constexpr const std::uint32_t pp1 = 223092870u;
+   static const boost::uint32_t pp1 = 223092870u;
 
-   std::uint32_t m1 = integer_modulus(n, pp1);
+   boost::uint32_t m1 = integer_modulus(n, pp1);
 
    for (unsigned i = 0; i < sizeof(small_factors1) / sizeof(small_factors1[0]); ++i)
    {
@@ -29,9 +29,9 @@ bool check_small_factors(const I& n)
          return false;
    }
 
-   constexpr const std::uint32_t small_factors2[] = {
+   static const boost::uint32_t small_factors2[] = {
        29u, 31u, 37u, 41u, 43u, 47u};
-   constexpr const std::uint32_t pp2 = 2756205443u;
+   static const boost::uint32_t pp2 = 2756205443u;
 
    m1 = integer_modulus(n, pp2);
 
@@ -42,9 +42,9 @@ bool check_small_factors(const I& n)
          return false;
    }
 
-   constexpr const std::uint32_t small_factors3[] = {
+   static const boost::uint32_t small_factors3[] = {
        53u, 59u, 61u, 67u, 71u};
-   constexpr const std::uint32_t pp3 = 907383479u;
+   static const boost::uint32_t pp3 = 907383479u;
 
    m1 = integer_modulus(n, pp3);
 
@@ -55,9 +55,9 @@ bool check_small_factors(const I& n)
          return false;
    }
 
-   constexpr const std::uint32_t small_factors4[] = {
+   static const boost::uint32_t small_factors4[] = {
        73u, 79u, 83u, 89u, 97u};
-   constexpr const std::uint32_t pp4 = 4132280413u;
+   static const boost::uint32_t pp4 = 4132280413u;
 
    m1 = integer_modulus(n, pp4);
 
@@ -68,14 +68,14 @@ bool check_small_factors(const I& n)
          return false;
    }
 
-   constexpr const std::uint32_t small_factors5[6][4] = {
+   static const boost::uint32_t small_factors5[6][4] = {
        {101u, 103u, 107u, 109u},
        {113u, 127u, 131u, 137u},
        {139u, 149u, 151u, 157u},
        {163u, 167u, 173u, 179u},
        {181u, 191u, 193u, 197u},
        {199u, 211u, 223u, 227u}};
-   constexpr const std::uint32_t pp5[6] =
+   static const boost::uint32_t pp5[6] =
        {
            121330189u,
            113u * 127u * 131u * 137u,
@@ -100,7 +100,7 @@ bool check_small_factors(const I& n)
 
 inline bool is_small_prime(unsigned n)
 {
-   constexpr const unsigned char p[] =
+   static const unsigned char p[] =
        {
            3u, 5u, 7u, 11u, 13u, 17u, 19u, 23u, 29u, 31u,
            37u, 41u, 43u, 47u, 53u, 59u, 61u, 67u, 71u, 73u,
@@ -117,13 +117,13 @@ inline bool is_small_prime(unsigned n)
 }
 
 template <class I>
-typename std::enable_if<std::is_convertible<I, unsigned>::value, unsigned>::type
+typename enable_if_c<is_convertible<I, unsigned>::value, unsigned>::type
 cast_to_unsigned(const I& val)
 {
    return static_cast<unsigned>(val);
 }
 template <class I>
-typename std::enable_if<!std::is_convertible<I, unsigned>::value, unsigned>::type
+typename disable_if_c<is_convertible<I, unsigned>::value, unsigned>::type
 cast_to_unsigned(const I& val)
 {
    return val.template convert_to<unsigned>();
@@ -132,10 +132,14 @@ cast_to_unsigned(const I& val)
 } // namespace detail
 
 template <class I, class Engine>
-typename std::enable_if<number_category<I>::value == number_kind_integer, bool>::type
+typename enable_if_c<number_category<I>::value == number_kind_integer, bool>::type
 miller_rabin_test(const I& n, unsigned trials, Engine& gen)
 {
-   using number_type = I;
+#ifdef BOOST_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif
+   typedef I number_type;
 
    if (n == 2)
       return true; // Trivial special case.
@@ -186,10 +190,13 @@ miller_rabin_test(const I& n, unsigned trials, Engine& gen)
       }
    }
    return true; // Yeheh! probably prime.
+#ifdef BOOST_MSVC
+#pragma warning(pop)
+#endif
 }
 
 template <class I>
-typename std::enable_if<number_category<I>::value == number_kind_integer, bool>::type
+typename enable_if_c<number_category<I>::value == number_kind_integer, bool>::type
 miller_rabin_test(const I& x, unsigned trials)
 {
    static mt19937 gen;
@@ -199,14 +206,14 @@ miller_rabin_test(const I& x, unsigned trials)
 template <class tag, class Arg1, class Arg2, class Arg3, class Arg4, class Engine>
 bool miller_rabin_test(const detail::expression<tag, Arg1, Arg2, Arg3, Arg4>& n, unsigned trials, Engine& gen)
 {
-   using number_type = typename detail::expression<tag, Arg1, Arg2, Arg3, Arg4>::result_type;
+   typedef typename detail::expression<tag, Arg1, Arg2, Arg3, Arg4>::result_type number_type;
    return miller_rabin_test(number_type(n), trials, gen);
 }
 
 template <class tag, class Arg1, class Arg2, class Arg3, class Arg4>
 bool miller_rabin_test(const detail::expression<tag, Arg1, Arg2, Arg3, Arg4>& n, unsigned trials)
 {
-   using number_type = typename detail::expression<tag, Arg1, Arg2, Arg3, Arg4>::result_type;
+   typedef typename detail::expression<tag, Arg1, Arg2, Arg3, Arg4>::result_type number_type;
    return miller_rabin_test(number_type(n), trials);
 }
 

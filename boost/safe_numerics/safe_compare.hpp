@@ -72,7 +72,7 @@ typename std::enable_if<
     std::is_integral<T>::value && std::is_integral<U>::value,
     bool
 >::type
-constexpr inline less_than(const T & lhs, const U & rhs) {
+constexpr less_than(const T & lhs, const U & rhs) {
     return safe_compare_detail::less_than<
         std::is_signed<T>::value,
         std::is_signed<U>::value
@@ -84,22 +84,22 @@ typename std::enable_if<
     std::is_floating_point<T>::value && std::is_floating_point<U>::value,
     bool
 >::type
-constexpr inline less_than(const T & lhs, const U & rhs) {
+constexpr less_than(const T & lhs, const U & rhs) {
     return lhs < rhs;
 }
 
 template<class T, class U>
-constexpr inline bool greater_than(const T & lhs, const U & rhs) {
+constexpr bool greater_than(const T & lhs, const U & rhs) {
     return less_than(rhs, lhs);
 }
 
 template<class T, class U>
-constexpr inline bool less_than_equal(const T & lhs, const U & rhs) {
+constexpr bool less_than_equal(const T & lhs, const U & rhs) {
     return ! greater_than(lhs, rhs);
 }
 
 template<class T, class U>
-constexpr inline bool greater_than_equal(const T & lhs, const U & rhs) {
+constexpr bool greater_than_equal(const T & lhs, const U & rhs) {
     return ! less_than(lhs, rhs);
 }
 
@@ -152,7 +152,7 @@ typename std::enable_if<
     std::is_integral<T>::value && std::is_integral<U>::value,
     bool
 >::type
-constexpr inline equal(const T & lhs, const U & rhs) {
+constexpr equal(const T & lhs, const U & rhs) {
     return safe_compare_detail::equal<
         std::numeric_limits<T>::is_signed,
         std::numeric_limits<U>::is_signed
@@ -164,12 +164,12 @@ typename std::enable_if<
     std::is_floating_point<T>::value && std::is_floating_point<U>::value,
     bool
 >::type
-constexpr inline equal(const T & lhs, const U & rhs) {
+constexpr equal(const T & lhs, const U & rhs) {
     return lhs == rhs;
 }
 
 template<class T, class U>
-constexpr inline bool not_equal(const T & lhs, const U & rhs) {
+constexpr bool not_equal(const T & lhs, const U & rhs) {
     return ! equal(lhs, rhs);
 }
 
