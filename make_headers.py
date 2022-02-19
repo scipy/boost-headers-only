@@ -1,4 +1,4 @@
-'''Generate header files from Boost source distribution.'''
+"""Generate header files from Boost source distribution."""
 
 import argparse
 import gzip
@@ -78,11 +78,13 @@ def _generate_headers(ver: str, verbose: bool):
             logger.info('Updating header files')
             if (base / 'boost').exists():
                 shutil.rmtree(base / 'boost')
+                for f in pathlib.Path(__file__).parent.glob("Boost_*_README.md"):
+                    f.unlink()
             shutil.move(dst / 'boost_tmp_build/include/boost', base / 'boost')
             shutil.move(dst / archive_name / 'LICENSE_1_0.txt', base / 'LICENSE_1_0.txt')
             shutil.move(dst / archive_name / 'README.md', base / f'Boost_{BOOST_VER_UND}_README.md')
     finally:
-        # We want to save the tar file as a temporary file and simulataneously
+        # We want to save the tar file as a temporary file and simultaneously
         # extract it, meaning it will need to be opened in a context manager
         # multiple times.  While Linux can handle nested context managers
         # using the same file handle, Windows cannot.  So we have to mark the
@@ -90,12 +92,24 @@ def _generate_headers(ver: str, verbose: bool):
         # then ensure cleanup happens in this "finally" statement
         ntf.close()
 
-    logger.info('Done!')
+    logger.info('Done creating base Boost headers!')
+
+    logger.info("Applying patches...")
+    patch_dir = pathlib.Path(__file__).parent / "patches"
+    for f in patch_dir.glob("*.patch"):
+        if subprocess.run(["git", "apply", str(f)], cwd=base).returncode != 0:
+            logger.error(f"Failed to apply patch: {f}.  Skipping.")
+        logger.info(f"Applied {f}")
+    else:
+        logger.info("Found no patches to apply!")
+
+    logger.info("Done!")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument('--boost-version', type=str, help='Boost version to download formatted as [major].[minor].[patch].', default='1.75.0')
+    parser.add_argument('--boost-version', type=str,
+                        help='Boost version to download formatted as [major].[minor].[patch].', required=True)
     parser.add_argument('-v', action='store_true', help='Enable verbose logging.', default=False)
     args = parser.parse_args()
     _generate_headers(ver=args.boost_version, verbose=args.v)
