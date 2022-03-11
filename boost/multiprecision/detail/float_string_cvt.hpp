@@ -53,8 +53,8 @@ std::string convert_to_string(Backend b, std::streamsize digits, std::ios_base::
    using default_ops::eval_pow;
    using default_ops::eval_subtract;
 
-   using ui_type = typename std::tuple_element<0, typename Backend::unsigned_types>::type;
-   using exponent_type = typename Backend::exponent_type                            ;
+   typedef typename mpl::front<typename Backend::unsigned_types>::type ui_type;
+   typedef typename Backend::exponent_type                             exponent_type;
 
    std::string     result;
    bool            iszero     = false;
@@ -166,7 +166,7 @@ std::string convert_to_string(Backend b, std::streamsize digits, std::ios_base::
          }
       }
    }
-   while ((static_cast<std::streamsize>(result.size()) > digits) && (result.size() != 0U))
+   while ((result.size() > digits) && result.size())
    {
       // We may get here as a result of rounding...
       if (result.size() > 1)
@@ -196,18 +196,18 @@ void convert_from_string(Backend& b, const char* p)
    using default_ops::eval_multiply;
    using default_ops::eval_pow;
 
-   using ui_type = typename std::tuple_element<0, typename Backend::unsigned_types>::type;
+   typedef typename mpl::front<typename Backend::unsigned_types>::type ui_type;
    b = ui_type(0);
    if (!p || (*p == 0))
       return;
 
    bool                                                  is_neg       = false;
    bool                                                  is_neg_expon = false;
-   constexpr const ui_type                               ten          = ui_type(10);
+   static const ui_type                                  ten          = ui_type(10);
    typename Backend::exponent_type                       expon        = 0;
    int                                                   digits_seen  = 0;
-   using limits = std::numeric_limits<number<Backend, et_off> >;
-   constexpr const int                                   max_digits = limits::is_specialized ? limits::max_digits10 + 1 : INT_MAX;
+   typedef std::numeric_limits<number<Backend, et_off> > limits;
+   static const int                                      max_digits = limits::is_specialized ? limits::max_digits10 + 1 : INT_MAX;
 
    if (*p == '+')
       ++p;

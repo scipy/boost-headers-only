@@ -41,7 +41,7 @@ namespace detail { namespace is_valid
 template
 <
     typename Geometry,
-    typename CSTag // TODO: remove
+    typename CSTag
 >
 class has_valid_self_turns
 {

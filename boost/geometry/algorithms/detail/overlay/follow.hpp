@@ -62,11 +62,11 @@ template
     typename Operation,
     typename LineString,
     typename Polygon,
-    typename Strategy
+    typename PtInPolyStrategy
 >
 inline bool last_covered_by(Turn const& /*turn*/, Operation const& op,
                 LineString const& linestring, Polygon const& polygon,
-                Strategy const& strategy)
+                PtInPolyStrategy const& strategy)
 {
     return geometry::covered_by(range::at(linestring, op.seg_id.segment_index), polygon, strategy);
 }
@@ -78,12 +78,12 @@ template
     typename Operation,
     typename LineString,
     typename Polygon,
-    typename Strategy
+    typename PtInPolyStrategy
 >
 inline bool is_leaving(Turn const& turn, Operation const& op,
                 bool entered, bool first,
                 LineString const& linestring, Polygon const& polygon,
-                Strategy const& strategy)
+                PtInPolyStrategy const& strategy)
 {
     if (op.operation == operation_union)
     {
@@ -104,12 +104,12 @@ template
     typename Operation,
     typename LineString,
     typename Polygon,
-    typename Strategy
+    typename PtInPolyStrategy
 >
 inline bool is_staying_inside(Turn const& turn, Operation const& op,
                 bool entered, bool first,
                 LineString const& linestring, Polygon const& polygon,
-                Strategy const& strategy)
+                PtInPolyStrategy const& strategy)
 {
     if (turn.method == method_crosses)
     {
@@ -132,11 +132,11 @@ template
     typename Operation,
     typename Linestring,
     typename Polygon,
-    typename Strategy
+    typename PtInPolyStrategy
 >
 inline bool was_entered(Turn const& turn, Operation const& op, bool first,
                 Linestring const& linestring, Polygon const& polygon,
-                Strategy const& strategy)
+                PtInPolyStrategy const& strategy)
 {
     if (first && (turn.method == method_collinear || turn.method == method_equal))
     {
@@ -234,7 +234,7 @@ struct action_selector<overlay_intersection, RemoveSpikes>
     {
         // On enter, append the intersection point and remember starting point
         // TODO: we don't check on spikes for linestrings (?). Consider this.
-        detail::overlay::append_no_duplicates(current_piece, point, strategy);
+        detail::overlay::append_no_duplicates(current_piece, point, strategy.get_equals_point_point_strategy());
         segment_id = operation.seg_id;
     }
 
@@ -263,7 +263,7 @@ struct action_selector<overlay_intersection, RemoveSpikes>
             <
                 false, RemoveSpikes
             >::apply(linestring, segment_id, index, strategy, robust_policy, current_piece);
-        detail::overlay::append_no_duplicates(current_piece, point, strategy);
+        detail::overlay::append_no_duplicates(current_piece, point, strategy.get_equals_point_point_strategy());
         if (::boost::size(current_piece) > 1)
         {
             *out++ = current_piece;
@@ -431,6 +431,14 @@ public :
 
         typedef following::action_selector<OverlayType, RemoveSpikes> action;
 
+        typedef typename Strategy::cs_tag cs_tag;
+
+        typename Strategy::template point_in_geometry_strategy
+            <
+                LineString, Polygon
+            >::type const pt_in_poly_strategy
+            = strategy.template get_point_in_geometry_strategy<LineString, Polygon>();
+
         // Sort intersection points on segments-along-linestring, and distance
         // (like in enrich is done for poly/poly)
         // sort turns by Linear seg_id, then by fraction, then
@@ -438,8 +446,7 @@ public :
         // for different ring id: c, i, u, x
         typedef relate::turns::less
             <
-                0, relate::turns::less_op_linear_areal_single<0>,
-                typename Strategy::cs_tag
+                0, relate::turns::less_op_linear_areal_single<0>, cs_tag
             > turn_less;
         std::sort(boost::begin(turns), boost::end(turns), turn_less());
 
@@ -453,13 +460,13 @@ public :
         {
             turn_operation_iterator_type iit = boost::begin(it->operations);
 
-            if (following::was_entered(*it, *iit, first, linestring, polygon, strategy))
+            if (following::was_entered(*it, *iit, first, linestring, polygon, pt_in_poly_strategy))
             {
                 debug_traverse(*it, *iit, "-> Was entered");
                 entered = true;
             }
 
-            if (following::is_staying_inside(*it, *iit, entered, first, linestring, polygon, strategy))
+            if (following::is_staying_inside(*it, *iit, entered, first, linestring, polygon, pt_in_poly_strategy))
             {
                 debug_traverse(*it, *iit, "-> Staying inside");
 
@@ -475,7 +482,7 @@ public :
                     strategy, robust_policy,
                     linear::get(out));
             }
-            else if (following::is_leaving(*it, *iit, entered, first, linestring, polygon, strategy))
+            else if (following::is_leaving(*it, *iit, entered, first, linestring, polygon, pt_in_poly_strategy))
             {
                 debug_traverse(*it, *iit, "-> Leaving");
 

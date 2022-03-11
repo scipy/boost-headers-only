@@ -112,7 +112,8 @@ public :
     }
 
     template <typename Geometry>
-    static inline auto result(state<Geometry>& st)
+    static inline typename result_type<Geometry>::type
+        result(state<Geometry>& st)
     {
         return st.area();
     }

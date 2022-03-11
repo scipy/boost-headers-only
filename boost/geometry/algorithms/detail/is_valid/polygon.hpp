@@ -185,10 +185,10 @@ protected:
     };
 
     // structs for partition -- start
-    template <typename Strategy>
+    template <typename EnvelopeStrategy>
     struct expand_box
     {
-        explicit expand_box(Strategy const& strategy)
+        explicit expand_box(EnvelopeStrategy const& strategy)
             : m_strategy(strategy)
         {}
 
@@ -197,38 +197,46 @@ protected:
         {
             geometry::expand(total,
                              item.get_envelope(m_strategy),
-                             m_strategy);
+                             // TEMP - envelope umbrella strategy also contains
+                             //        expand strategies
+                             strategies::envelope::services::strategy_converter
+                                <
+                                    EnvelopeStrategy
+                                >::get(m_strategy));
         }
 
-        Strategy const& m_strategy;
+        EnvelopeStrategy const& m_strategy;
     };
 
-    template <typename Strategy>
+    template <typename EnvelopeStrategy, typename DisjointBoxBoxStrategy>
     struct overlaps_box
     {
-        explicit overlaps_box(Strategy const& strategy)
-            : m_strategy(strategy)
+        explicit overlaps_box(EnvelopeStrategy const& envelope_strategy,
+                              DisjointBoxBoxStrategy const& disjoint_strategy)
+            : m_envelope_strategy(envelope_strategy)
+            , m_disjoint_strategy(disjoint_strategy)
         {}
 
         template <typename Box, typename Iterator>
         inline bool apply(Box const& box, partition_item<Iterator, Box> const& item) const
         {
-            return ! geometry::disjoint(item.get_envelope(m_strategy),
+            return ! geometry::disjoint(item.get_envelope(m_envelope_strategy),
                                         box,
-                                        m_strategy);
+                                        m_disjoint_strategy);
         }
 
-        Strategy const& m_strategy;
+        EnvelopeStrategy const& m_envelope_strategy;
+        DisjointBoxBoxStrategy const& m_disjoint_strategy;
     };
 
 
-    template <typename Strategy>
+    template <typename WithinStrategy>
     struct item_visitor_type
     {
         bool items_overlap;
-        Strategy const& m_strategy;
+        WithinStrategy const& m_strategy;
 
-        explicit item_visitor_type(Strategy const& strategy)
+        explicit item_visitor_type(WithinStrategy const& strategy)
             : items_overlap(false)
             , m_strategy(strategy)
         {}
@@ -291,6 +299,14 @@ protected:
             }
         }
 
+        // prepare strategy
+        typedef typename std::iterator_traits<RingIterator>::value_type inter_ring_type;
+        typename Strategy::template point_in_geometry_strategy
+            <
+                inter_ring_type, ExteriorRing
+            >::type const in_exterior_strategy
+            = strategy.template get_point_in_geometry_strategy<inter_ring_type, ExteriorRing>();
+
         signed_size_type ring_index = 0;
         for (RingIterator it = rings_first; it != rings_beyond;
              ++it, ++ring_index)
@@ -298,7 +314,7 @@ protected:
             // do not examine interior rings that have turns with the
             // exterior ring
             if (ring_indices.find(ring_index) == ring_indices.end()
-                && ! geometry::covered_by(range::front(*it), exterior_ring, strategy))
+                && ! geometry::covered_by(range::front(*it), exterior_ring, in_exterior_strategy))
             {
                 return visitor.template apply<failure_interior_rings_outside>();
             }
@@ -326,6 +342,14 @@ protected:
             }
         }
 
+        // prepare strategies
+        typedef typename Strategy::envelope_strategy_type envelope_strategy_type;
+        envelope_strategy_type const envelope_strategy
+            = strategy.get_envelope_strategy();
+        typedef typename Strategy::disjoint_box_box_strategy_type disjoint_box_box_strategy_type;
+        disjoint_box_box_strategy_type const disjoint_strategy
+            = strategy.get_disjoint_box_box_strategy();
+
         // call partition to check if interior rings are disjoint from
         // each other
         item_visitor_type<Strategy> item_visitor(strategy);
@@ -334,8 +358,15 @@ protected:
             <
                 box_type
             >::apply(ring_iterators, item_visitor,
-                     expand_box<Strategy>(strategy),
-                     overlaps_box<Strategy>(strategy));
+                     expand_box
+                        <
+                            envelope_strategy_type
+                        >(envelope_strategy),
+                     overlaps_box
+                        <
+                            envelope_strategy_type,
+                            disjoint_box_box_strategy_type
+                        >(envelope_strategy, disjoint_strategy));
 
         if (item_visitor.items_overlap)
         {

@@ -136,11 +136,11 @@ class mapped_region
    //!Default constructor. Address will be 0 (nullptr).
    //!Size will be 0.
    //!Does not throw
-   mapped_region() BOOST_NOEXCEPT;
+   mapped_region();
 
    //!Move constructor. *this will be constructed taking ownership of "other"'s
    //!region and "other" will be left in default constructor state.
-   mapped_region(BOOST_RV_REF(mapped_region) other)  BOOST_NOEXCEPT
+   mapped_region(BOOST_RV_REF(mapped_region) other)
    #if defined (BOOST_INTERPROCESS_WINDOWS)
    :  m_base(0), m_size(0)
    ,  m_page_offset(0)
@@ -157,7 +157,7 @@ class mapped_region
 
    //!Move assignment. If *this owns a memory mapped region, it will be
    //!destroyed and it will take ownership of "other"'s memory mapped region.
-   mapped_region &operator=(BOOST_RV_REF(mapped_region) other) BOOST_NOEXCEPT
+   mapped_region &operator=(BOOST_RV_REF(mapped_region) other)
    {
       mapped_region tmp(boost::move(other));
       this->swap(tmp);
@@ -166,18 +166,18 @@ class mapped_region
 
    //!Swaps the mapped_region with another
    //!mapped region
-   void swap(mapped_region &other) BOOST_NOEXCEPT;
+   void swap(mapped_region &other);
 
    //!Returns the size of the mapping. Never throws.
-   std::size_t get_size() const BOOST_NOEXCEPT;
+   std::size_t get_size() const;
 
    //!Returns the base address of the mapping.
    //!Never throws.
-   void*       get_address() const BOOST_NOEXCEPT;
+   void*       get_address() const;
 
    //!Returns the mode of the mapping used to construct the mapped region.
    //!Never throws.
-   mode_t get_mode() const BOOST_NOEXCEPT;
+   mode_t get_mode() const;
 
    //!Flushes to the disk a byte range within the mapped memory.
    //!If 'async' is true, the function will return before flushing operation is completed
@@ -225,7 +225,7 @@ class mapped_region
    //!Returns the size of the page. This size is the minimum memory that
    //!will be used by the system when mapping a memory mappable source and
    //!will restrict the address and the offset to map.
-   static std::size_t get_page_size() BOOST_NOEXCEPT;
+   static std::size_t get_page_size();
 
    #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
    private:
@@ -269,19 +269,19 @@ class mapped_region
 
 #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 
-inline void swap(mapped_region &x, mapped_region &y) BOOST_NOEXCEPT
+inline void swap(mapped_region &x, mapped_region &y)
 {  x.swap(y);  }
 
 inline mapped_region::~mapped_region()
 {  this->priv_close(); }
 
-inline std::size_t mapped_region::get_size() const BOOST_NOEXCEPT
+inline std::size_t mapped_region::get_size()  const
 {  return m_size; }
 
-inline mode_t mapped_region::get_mode() const BOOST_NOEXCEPT
+inline mode_t mapped_region::get_mode()  const
 {  return m_mode;   }
 
-inline void*    mapped_region::get_address() const BOOST_NOEXCEPT
+inline void*    mapped_region::get_address()  const
 {  return m_base; }
 
 inline void*    mapped_region::priv_map_address()  const
@@ -375,7 +375,7 @@ inline offset_t mapped_region::priv_page_offset_addr_fixup(offset_t offset, cons
 
 #if defined (BOOST_INTERPROCESS_WINDOWS)
 
-inline mapped_region::mapped_region() BOOST_NOEXCEPT
+inline mapped_region::mapped_region()
    :  m_base(0), m_size(0), m_page_offset(0), m_mode(read_only)
    ,  m_file_or_mapping_hnd(ipcdetail::invalid_file())
 {}
@@ -442,7 +442,7 @@ inline mapped_region::mapped_region
          //Create mapping handle
          native_mapping_handle = winapi::create_file_mapping
             ( ipcdetail::file_handle_from_mapping_handle(mapping.get_mapping_handle())
-            , protection, 0, (char*)0, 0);
+            , protection, 0, 0, 0);
 
          //Check if all is correct
          if(!native_mapping_handle){
@@ -573,7 +573,7 @@ inline void mapped_region::dont_close_on_destruction()
 
 #else    //#if defined (BOOST_INTERPROCESS_WINDOWS)
 
-inline mapped_region::mapped_region() BOOST_NOEXCEPT
+inline mapped_region::mapped_region()
    :  m_base(0), m_size(0), m_page_offset(0), m_mode(read_only), m_is_xsi(false)
 {}
 
@@ -852,7 +852,7 @@ template<int dummy>
 const std::size_t mapped_region::page_size_holder<dummy>::PageSize
    = mapped_region::page_size_holder<dummy>::get_page_size();
 
-inline std::size_t mapped_region::get_page_size() BOOST_NOEXCEPT
+inline std::size_t mapped_region::get_page_size()
 {
    if(!page_size_holder<0>::PageSize)
       return page_size_holder<0>::get_page_size();
@@ -860,7 +860,7 @@ inline std::size_t mapped_region::get_page_size() BOOST_NOEXCEPT
       return page_size_holder<0>::PageSize;
 }
 
-inline void mapped_region::swap(mapped_region &other) BOOST_NOEXCEPT
+inline void mapped_region::swap(mapped_region &other)
 {
    ::boost::adl_move_swap(this->m_base, other.m_base);
    ::boost::adl_move_swap(this->m_size, other.m_size);

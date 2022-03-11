@@ -54,14 +54,18 @@ information and acquired knowledge:
  */
 #if !BOOST_ENDIAN_BIG_BYTE && !BOOST_ENDIAN_BIG_WORD && \
     !BOOST_ENDIAN_LITTLE_BYTE && !BOOST_ENDIAN_LITTLE_WORD
-#   if BOOST_LIB_C_GNU || BOOST_PLAT_ANDROID || BOOST_OS_BSD_OPEN
+#   if BOOST_LIB_C_GNU || BOOST_PLAT_ANDROID
 #       include <endian.h>
 #   else
 #       if BOOST_OS_MACOS
 #           include <machine/endian.h>
 #       else
 #           if BOOST_OS_BSD
-#               include <sys/endian.h>
+#               if BOOST_OS_BSD_OPEN
+#                   include <machine/endian.h>
+#               else
+#                   include <sys/endian.h>
+#               endif
 #           endif
 #       endif
 #   endif
@@ -95,7 +99,7 @@ information and acquired knowledge:
 #   endif
 #endif
 
-/* Built-in byte-swapped big-endian macros.
+/* Built-in byte-swpped big-endian macros.
  */
 #if !BOOST_ENDIAN_BIG_BYTE && !BOOST_ENDIAN_BIG_WORD && \
     !BOOST_ENDIAN_LITTLE_BYTE && !BOOST_ENDIAN_LITTLE_WORD
@@ -112,7 +116,7 @@ information and acquired knowledge:
 #   endif
 #endif
 
-/* Built-in byte-swapped little-endian macros.
+/* Built-in byte-swpped little-endian macros.
  */
 #if !BOOST_ENDIAN_BIG_BYTE && !BOOST_ENDIAN_BIG_WORD && \
     !BOOST_ENDIAN_LITTLE_BYTE && !BOOST_ENDIAN_LITTLE_WORD
@@ -124,8 +128,7 @@ information and acquired knowledge:
         defined(_MIPSEL) || \
         defined(__MIPSEL) || \
         defined(__MIPSEL__) || \
-        defined(__riscv) || \
-        defined(__e2k__)
+        defined(__riscv)
 #       undef BOOST_ENDIAN_LITTLE_BYTE
 #       define BOOST_ENDIAN_LITTLE_BYTE BOOST_VERSION_NUMBER_AVAILABLE
 #   endif
@@ -155,7 +158,7 @@ information and acquired knowledge:
 #endif
 
 /* Windows on ARM, if not otherwise detected/specified, is always
- * byte-swapped little-endian.
+ * byte-swaped little-endian.
  */
 #if !BOOST_ENDIAN_BIG_BYTE && !BOOST_ENDIAN_BIG_WORD && \
     !BOOST_ENDIAN_LITTLE_BYTE && !BOOST_ENDIAN_LITTLE_WORD

@@ -247,7 +247,7 @@ struct disjoint_segment_box
                              Box const& box,
                              Strategy const& strategy)
     {
-        return strategy.disjoint(segment, box).apply(segment, box);
+        return strategy.apply(segment, box);
     }
 };
 

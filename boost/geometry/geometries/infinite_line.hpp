@@ -24,8 +24,6 @@ namespace model
 template <typename Type = double>
 struct infinite_line
 {
-    using type = Type;
-
     infinite_line()
         : a(0)
         , b(0)

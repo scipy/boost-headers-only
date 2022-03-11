@@ -4,8 +4,8 @@
 //
 // Copyright (c) 2011-2018 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019-2020.
-// Modifications copyright (c) 2019-2020 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2019.
+// Modifications copyright (c) 2019 Oracle and/or its affiliates.
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 //
 // Use, modification and distribution is subject to the Boost Software License,
@@ -24,9 +24,10 @@ namespace boost { namespace geometry { namespace index { namespace detail {
 
 // Util to distinguish between default and non-default index strategy
 template <typename Box, typename Strategy>
-inline bool disjoint_box_box(Box const& box1, Box const& box2, Strategy const& s)
+inline bool disjoint_box_box(Box const& box1, Box const& box2, Strategy const&)
 {
-    return geometry::detail::disjoint::disjoint_box_box(box1, box2, s);
+    return geometry::detail::disjoint::disjoint_box_box(box1, box2,
+                typename Strategy::disjoint_box_box_strategy_type());
 }
 
 template <typename Box>

@@ -352,7 +352,7 @@ namespace boost
    private:
       void test(boost::false_type)
       {
-          (void) f(first,second);
+          f(first,second);
           Return r = f(first, second); // require operator()
           (void)r;
       }

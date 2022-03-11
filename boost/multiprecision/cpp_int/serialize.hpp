@@ -25,13 +25,13 @@ using namespace boost::multiprecision;
 using namespace boost::multiprecision::backends;
 
 template <class T>
-struct is_binary_archive : public std::integral_constant<bool, false>
+struct is_binary_archive : public mpl::false_
 {};
 template <>
-struct is_binary_archive<boost::archive::binary_oarchive> : public std::integral_constant<bool, true>
+struct is_binary_archive<boost::archive::binary_oarchive> : public mpl::true_
 {};
 template <>
-struct is_binary_archive<boost::archive::binary_iarchive> : public std::integral_constant<bool, true>
+struct is_binary_archive<boost::archive::binary_iarchive> : public mpl::true_
 {};
 
 //
@@ -41,7 +41,7 @@ struct is_binary_archive<boost::archive::binary_iarchive> : public std::integral
 // Binary or not archive.
 //
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> const&, std::integral_constant<bool, false> const&, std::integral_constant<bool, false> const&)
+void do_serialize(Archive& ar, Int& val, mpl::false_ const&, mpl::false_ const&, mpl::false_ const&)
 {
    // Load.
    // Non-trivial.
@@ -72,7 +72,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> con
    val.normalize();
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> const&, std::integral_constant<bool, false> const&, std::integral_constant<bool, false> const&)
+void do_serialize(Archive& ar, Int& val, mpl::true_ const&, mpl::false_ const&, mpl::false_ const&)
 {
    // Store.
    // Non-trivial.
@@ -97,7 +97,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> cons
    }
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> const&, std::integral_constant<bool, true> const&, std::integral_constant<bool, false> const&)
+void do_serialize(Archive& ar, Int& val, mpl::false_ const&, mpl::true_ const&, mpl::false_ const&)
 {
    // Load.
    // Trivial.
@@ -119,7 +119,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> con
       val.negate();
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> const&, std::integral_constant<bool, true> const&, std::integral_constant<bool, false> const&)
+void do_serialize(Archive& ar, Int& val, mpl::true_ const&, mpl::true_ const&, mpl::false_ const&)
 {
    // Store.
    // Trivial.
@@ -137,7 +137,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> cons
    }
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> const&, std::integral_constant<bool, false> const&, std::integral_constant<bool, true> const&)
+void do_serialize(Archive& ar, Int& val, mpl::false_ const&, mpl::false_ const&, mpl::true_ const&)
 {
    // Load.
    // Non-trivial.
@@ -153,7 +153,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> con
    val.normalize();
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> const&, std::integral_constant<bool, false> const&, std::integral_constant<bool, true> const&)
+void do_serialize(Archive& ar, Int& val, mpl::true_ const&, mpl::false_ const&, mpl::true_ const&)
 {
    // Store.
    // Non-trivial.
@@ -165,7 +165,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> cons
    ar.save_binary(val.limbs(), c * sizeof(limb_type));
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> const&, std::integral_constant<bool, true> const&, std::integral_constant<bool, true> const&)
+void do_serialize(Archive& ar, Int& val, mpl::false_ const&, mpl::true_ const&, mpl::true_ const&)
 {
    // Load.
    // Trivial.
@@ -177,7 +177,7 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, false> con
       val.negate();
 }
 template <class Archive, class Int>
-void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> const&, std::integral_constant<bool, true> const&, std::integral_constant<bool, true> const&)
+void do_serialize(Archive& ar, Int& val, mpl::true_ const&, mpl::true_ const&, mpl::true_ const&)
 {
    // Store.
    // Trivial.
@@ -192,10 +192,9 @@ void do_serialize(Archive& ar, Int& val, std::integral_constant<bool, true> cons
 template <class Archive, unsigned MinBits, unsigned MaxBits, mp::cpp_integer_type SignType, mp::cpp_int_check_type Checked, class Allocator>
 void serialize(Archive& ar, mp::cpp_int_backend<MinBits, MaxBits, SignType, Checked, Allocator>& val, const unsigned int /*version*/)
 {
-   using archive_save_tag = typename Archive::is_saving                                ;
-   using save_tag = std::integral_constant<bool, archive_save_tag::value>      ;
-   using trivial_tag = std::integral_constant<bool, mp::backends::is_trivial_cpp_int<mp::cpp_int_backend<MinBits, MaxBits, SignType, Checked, Allocator> >::value>;
-   using binary_tag = typename cpp_int_detail::is_binary_archive<Archive>::type  ;
+   typedef typename Archive::is_saving                                                                                               save_tag;
+   typedef mpl::bool_<mp::backends::is_trivial_cpp_int<mp::cpp_int_backend<MinBits, MaxBits, SignType, Checked, Allocator> >::value> trivial_tag;
+   typedef typename cpp_int_detail::is_binary_archive<Archive>::type                                                                 binary_tag;
 
    // Just dispatch to the correct method:
    cpp_int_detail::do_serialize(ar, val, save_tag(), trivial_tag(), binary_tag());

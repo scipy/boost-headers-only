@@ -19,10 +19,9 @@
 #include <boost/spirit/home/support/unused.hpp>
 #include <boost/spirit/home/qi/detail/attributes.hpp>
 #include <boost/spirit/home/support/detail/pow10.hpp>
+#include <boost/spirit/home/support/detail/sign.hpp>
 #include <boost/integer.hpp>
 #include <boost/assert.hpp>
-
-#include <boost/core/cmath.hpp>
 
 #if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
 # pragma warning(push)
@@ -122,19 +121,19 @@ namespace boost { namespace spirit { namespace traits
     inline float
     negate(bool neg, float n)
     {
-        return neg ? (core::copysign)(n, -1.f) : n;
+        return neg ? spirit::detail::changesign(n) : n;
     }
 
     inline double
     negate(bool neg, double n)
     {
-        return neg ? (core::copysign)(n, -1.) : n;
+        return neg ? spirit::detail::changesign(n) : n;
     }
 
     inline long double
     negate(bool neg, long double n)
     {
-        return neg ? (core::copysign)(n, static_cast<long double>(-1)) : n;
+        return neg ? spirit::detail::changesign(n) : n;
     }
 
     template <typename T>

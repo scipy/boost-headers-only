@@ -13,7 +13,6 @@
 #endif
 
 #include <cctype>
-#include <climits>
 #include <boost/assert.hpp>
 #include <boost/cstdint.hpp>
 

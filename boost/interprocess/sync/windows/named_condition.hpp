@@ -27,7 +27,7 @@ namespace boost {
 namespace interprocess {
 namespace ipcdetail {
 
-typedef winapi_named_condition_any winapi_named_condition;
+typedef windows_named_condition_any windows_named_condition;
 
 }  //namespace ipcdetail {
 }  //namespace interprocess {

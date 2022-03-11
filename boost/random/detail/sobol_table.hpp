@@ -10,7 +10,6 @@
 #define BOOST_RANDOM_DETAIL_SOBOL_TABLE_HPP
 
 #include <boost/config.hpp>
-#include <cstddef>
 
 namespace boost {
 namespace random {

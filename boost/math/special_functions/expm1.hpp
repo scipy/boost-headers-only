@@ -10,7 +10,8 @@
 #pragma once
 #endif
 
-#include <cmath>
+#include <boost/config/no_tr1/cmath.hpp>
+#include <math.h> // platform's ::expm1
 #include <boost/limits.hpp>
 #include <boost/math/tools/config.hpp>
 #include <boost/math/tools/series.hpp>
@@ -19,6 +20,7 @@
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/math/tools/rational.hpp>
 #include <boost/math/special_functions/math_fwd.hpp>
+#include <boost/mpl/less_equal.hpp>
 
 #ifndef BOOST_NO_LIMITS_COMPILE_TIME_CONSTANTS
 #  include <boost/static_assert.hpp>
@@ -83,12 +85,12 @@ struct expm1_initializer
          do_init(tag());
       }
       template <int N>
-      static void do_init(const std::integral_constant<int, N>&){}
-      static void do_init(const std::integral_constant<int, 64>&)
+      static void do_init(const boost::integral_constant<int, N>&){}
+      static void do_init(const boost::integral_constant<int, 64>&)
       {
          expm1(T(0.5));
       }
-      static void do_init(const std::integral_constant<int, 113>&)
+      static void do_init(const boost::integral_constant<int, 113>&)
       {
          expm1(T(0.5));
       }
@@ -110,7 +112,7 @@ const typename expm1_initializer<T, Policy, tag>::init expm1_initializer<T, Poli
 // This version uses a Taylor series expansion for 0.5 > |x| > epsilon.
 //
 template <class T, class Policy>
-T expm1_imp(T x, const std::integral_constant<int, 0>&, const Policy& pol)
+T expm1_imp(T x, const boost::integral_constant<int, 0>&, const Policy& pol)
 {
    BOOST_MATH_STD_USING
 
@@ -144,7 +146,7 @@ T expm1_imp(T x, const std::integral_constant<int, 0>&, const Policy& pol)
 }
 
 template <class T, class P>
-T expm1_imp(T x, const std::integral_constant<int, 53>&, const P& pol)
+T expm1_imp(T x, const boost::integral_constant<int, 53>&, const P& pol)
 {
    BOOST_MATH_STD_USING
 
@@ -171,7 +173,7 @@ T expm1_imp(T x, const std::integral_constant<int, 53>&, const P& pol)
 }
 
 template <class T, class P>
-T expm1_imp(T x, const std::integral_constant<int, 64>&, const P& pol)
+T expm1_imp(T x, const boost::integral_constant<int, 64>&, const P& pol)
 {
    BOOST_MATH_STD_USING
 
@@ -214,7 +216,7 @@ T expm1_imp(T x, const std::integral_constant<int, 64>&, const P& pol)
 }
 
 template <class T, class P>
-T expm1_imp(T x, const std::integral_constant<int, 113>&, const P& pol)
+T expm1_imp(T x, const boost::integral_constant<int, 113>&, const P& pol)
 {
    BOOST_MATH_STD_USING
 
@@ -278,7 +280,7 @@ inline typename tools::promote_args<T>::type expm1(T x, const Policy& /* pol */)
       policies::discrete_quantile<>,
       policies::assert_undefined<> >::type forwarding_policy;
 
-   typedef std::integral_constant<int,
+   typedef boost::integral_constant<int,
       precision_type::value <= 0 ? 0 :
       precision_type::value <= 53 ? 53 :
       precision_type::value <= 64 ? 64 :

@@ -424,7 +424,7 @@ inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_c
        rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>
    ::priv_first_block()
 {
-   const size_type block1_off = priv_first_block_offset_from_this(this, m_header.m_extra_hdr_bytes);
+   size_type block1_off = priv_first_block_offset_from_this(this, m_header.m_extra_hdr_bytes);
    return reinterpret_cast<block_ctrl *>(reinterpret_cast<char*>(this) + block1_off);
 }
 
@@ -433,10 +433,10 @@ inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_c
        rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>
    ::priv_end_block()
 {
-   const size_type block1_off = priv_first_block_offset_from_this(this, m_header.m_extra_hdr_bytes);
-   const size_type original_first_block_size = (m_header.m_size - block1_off)/Alignment - EndCtrlBlockUnits;
+   size_type block1_off  = priv_first_block_offset_from_this(this, m_header.m_extra_hdr_bytes);
+   const size_type original_first_block_size = m_header.m_size/Alignment*Alignment - block1_off/Alignment*Alignment - EndCtrlBlockBytes;
    block_ctrl *end_block = reinterpret_cast<block_ctrl*>
-      (reinterpret_cast<char*>(this) + block1_off + original_first_block_size*Alignment);
+      (reinterpret_cast<char*>(this) + block1_off + original_first_block_size);
    return end_block;
 }
 

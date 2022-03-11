@@ -5,8 +5,8 @@
 // Copyright (c) 2009-2014 Mateusz Loskot, London, UK.
 // Copyright (c) 2013-2014 Adam Wulkiewicz, Lodz, Poland.
 
-// This file was modified by Oracle on 2013-2021.
-// Modifications copyright (c) 2013-2021, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2013-2017.
+// Modifications copyright (c) 2013-2017, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
@@ -32,10 +32,7 @@
 
 #include <boost/geometry/geometries/concepts/check.hpp>
 
-#include <boost/geometry/strategies/default_strategy.hpp>
-#include <boost/geometry/strategies/detail.hpp>
 #include <boost/geometry/strategies/disjoint.hpp>
-#include <boost/geometry/strategies/relate/services.hpp>
 
 
 namespace boost { namespace geometry
@@ -44,14 +41,9 @@ namespace boost { namespace geometry
 namespace resolve_strategy
 {
 
-template
-<
-    typename Strategy,
-    bool IsUmbrella = strategies::detail::is_umbrella_strategy<Strategy>::value
->
 struct disjoint
 {
-    template <typename Geometry1, typename Geometry2>
+    template <typename Geometry1, typename Geometry2, typename Strategy>
     static inline bool apply(Geometry1 const& geometry1,
                              Geometry2 const& geometry2,
                              Strategy const& strategy)
@@ -61,35 +53,13 @@ struct disjoint
                     Geometry1, Geometry2
                 >::apply(geometry1, geometry2, strategy);
     }
-};
 
-template <typename Strategy>
-struct disjoint<Strategy, false>
-{
-    template <typename Geometry1, typename Geometry2>
-    static inline bool apply(Geometry1 const& geometry1,
-                             Geometry2 const& geometry2,
-                             Strategy const& strategy)
-    {
-        using strategies::relate::services::strategy_converter;
-
-        return dispatch::disjoint
-                <
-                    Geometry1, Geometry2
-                >::apply(geometry1, geometry2,
-                         strategy_converter<Strategy>::get(strategy));
-    }
-};
-
-template <>
-struct disjoint<default_strategy, false>
-{
     template <typename Geometry1, typename Geometry2>
     static inline bool apply(Geometry1 const& geometry1,
                              Geometry2 const& geometry2,
                              default_strategy)
     {
-        typedef typename strategies::relate::services::default_strategy
+        typedef typename strategy::disjoint::services::default_strategy
             <
                 Geometry1, Geometry2
             >::type strategy_type;
@@ -118,10 +88,7 @@ struct disjoint
                 Geometry2 const
             >();
 
-        return resolve_strategy::disjoint
-            <
-                Strategy
-            >::apply(geometry1, geometry2, strategy);
+        return resolve_strategy::disjoint::apply(geometry1, geometry2, strategy);
     }
 };
 

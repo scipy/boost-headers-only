@@ -1,6 +1,6 @@
 // Boost.Geometry
 
-// Copyright (c) 2014-2020, Oracle and/or its affiliates.
+// Copyright (c) 2014-2018, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
@@ -25,8 +25,7 @@
 #include <boost/geometry/policies/is_valid/failing_reason_policy.hpp>
 #include <boost/geometry/policies/is_valid/failure_type_policy.hpp>
 #include <boost/geometry/strategies/default_strategy.hpp>
-#include <boost/geometry/strategies/detail.hpp>
-#include <boost/geometry/strategies/relate/services.hpp>
+#include <boost/geometry/strategies/intersection.hpp>
 
 
 namespace boost { namespace geometry
@@ -35,14 +34,9 @@ namespace boost { namespace geometry
 namespace resolve_strategy
 {
 
-template
-<
-    typename Strategy,
-    bool IsUmbrella = strategies::detail::is_umbrella_strategy<Strategy>::value
->
 struct is_valid
 {
-    template <typename Geometry, typename VisitPolicy>
+    template <typename Geometry, typename VisitPolicy, typename Strategy>
     static inline bool apply(Geometry const& geometry,
                              VisitPolicy& visitor,
                              Strategy const& strategy)
@@ -50,41 +44,18 @@ struct is_valid
         return dispatch::is_valid<Geometry>::apply(geometry, visitor, strategy);
     }
 
-};
-
-template <typename Strategy>
-struct is_valid<Strategy, false>
-{
-    template <typename Geometry, typename VisitPolicy>
-    static inline bool apply(Geometry const& geometry,
-                             VisitPolicy& visitor,
-                             Strategy const& strategy)
-    {
-        using strategies::relate::services::strategy_converter;
-        return dispatch::is_valid
-            <
-                Geometry
-            >::apply(geometry, visitor,
-                     strategy_converter<Strategy>::get(strategy));
-    }
-};
-
-template <>
-struct is_valid<default_strategy, false>
-{
     template <typename Geometry, typename VisitPolicy>
     static inline bool apply(Geometry const& geometry,
                              VisitPolicy& visitor,
                              default_strategy)
     {
         // NOTE: Currently the strategy is only used for Areal geometries
-        typedef typename strategies::relate::services::default_strategy
+        typedef typename strategy::intersection::services::default_strategy
             <
-                Geometry, Geometry
+                typename cs_tag<Geometry>::type
             >::type strategy_type;
 
-        return dispatch::is_valid<Geometry>::apply(geometry, visitor,
-                                                   strategy_type());
+        return dispatch::is_valid<Geometry>::apply(geometry, visitor, strategy_type());
     }
 };
 
@@ -103,10 +74,7 @@ struct is_valid
     {
         concepts::check<Geometry const>();
 
-        return resolve_strategy::is_valid
-                <
-                    Strategy
-                >::apply(geometry, visitor, strategy);
+        return resolve_strategy::is_valid::apply(geometry, visitor, strategy);
     }
 };
 

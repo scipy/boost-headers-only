@@ -9,7 +9,7 @@
 #define BOOST_MP_UTYPE_HELPER_HPP
 
 #include <limits>
-#include <cstdint>
+#include <boost/cstdint.hpp>
 
 namespace boost {
 namespace multiprecision {
@@ -17,335 +17,335 @@ namespace detail {
 template <const unsigned>
 struct utype_helper
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<0U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<1U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<2U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<3U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<4U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<5U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<6U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<7U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 template <>
 struct utype_helper<8U>
 {
-   using exact = boost::uint8_t;
+   typedef boost::uint8_t exact;
 };
 
 template <>
 struct utype_helper<9U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<10U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<11U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<12U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<13U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<14U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<15U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 template <>
 struct utype_helper<16U>
 {
-   using exact = std::uint16_t;
+   typedef boost::uint16_t exact;
 };
 
 template <>
 struct utype_helper<17U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<18U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<19U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<20U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<21U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<22U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<23U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<24U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<25U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<26U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<27U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<28U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<29U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<30U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<31U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 template <>
 struct utype_helper<32U>
 {
-   using exact = std::uint32_t;
+   typedef boost::uint32_t exact;
 };
 
 template <>
 struct utype_helper<33U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<34U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<35U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<36U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<37U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<38U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<39U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<40U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<41U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<42U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<43U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<44U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<45U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<46U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<47U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<48U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<49U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<50U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<51U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<52U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<53U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<54U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<55U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<56U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<57U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<58U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<59U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<60U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<61U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<62U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<63U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 template <>
 struct utype_helper<64U>
 {
-   using exact = std::uint64_t;
+   typedef boost::uint64_t exact;
 };
 
 template <class unsigned_type>

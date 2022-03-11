@@ -3,8 +3,8 @@
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 // Copyright (c) 2014-2017 Adam Wulkiewicz, Lodz, Poland.
 
-// This file was modified by Oracle on 2014-2021.
-// Modifications copyright (c) 2014-2021 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2014-2020.
+// Modifications copyright (c) 2014-2020 Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -108,7 +108,7 @@ template
     typename Section,
     typename Point,
     typename CircularIterator,
-    typename Strategy,
+    typename IntersectionStrategy,
     typename RobustPolicy
 >
 struct unique_sub_range_from_section
@@ -118,17 +118,16 @@ struct unique_sub_range_from_section
     unique_sub_range_from_section(Section const& section, signed_size_type index,
                           CircularIterator circular_iterator,
                           Point const& previous, Point const& current,
-                          Strategy const& strategy,
                           RobustPolicy const& robust_policy)
-        : m_section(section)
-        , m_index(index)
-        , m_previous_point(previous)
-        , m_current_point(current)
-        , m_circular_iterator(circular_iterator)
-        , m_point_retrieved(false)
-        , m_strategy(strategy)
-        , m_robust_policy(robust_policy)
-    {}
+      : m_section(section)
+      , m_index(index)
+      , m_previous_point(previous)
+      , m_current_point(current)
+      , m_circular_iterator(circular_iterator)
+      , m_point_retrieved(false)
+      , m_robust_policy(robust_policy)
+    {
+    }
 
     inline bool is_first_segment() const
     {
@@ -171,6 +170,7 @@ private :
 
     inline void advance_to_non_duplicate_next(Point const& current, CircularIterator& circular_iterator) const
     {
+        typedef typename IntersectionStrategy::point_in_point_strategy_type disjoint_strategy_type;
         typedef typename robust_point_type<Point, RobustPolicy>::type robust_point_type;
         robust_point_type current_robust_point;
         robust_point_type next_robust_point;
@@ -187,9 +187,12 @@ private :
         // So advance to the "non duplicate next"
         // (the check is defensive, to avoid endless loops)
         std::size_t check = 0;
-        while (! detail::disjoint::disjoint_point_point(
-                    current_robust_point, next_robust_point, m_strategy)
-               && check++ < m_section.range_count)
+        while(! detail::disjoint::disjoint_point_point
+                (
+                    current_robust_point, next_robust_point,
+                    disjoint_strategy_type()
+                )
+            && check++ < m_section.range_count)
         {
             circular_iterator++;
             geometry::recalculate(next_robust_point, *circular_iterator, m_robust_policy);
@@ -203,7 +206,6 @@ private :
     mutable CircularIterator m_circular_iterator;
     mutable Point m_point;
     mutable bool m_point_retrieved;
-    Strategy m_strategy;
     RobustPolicy m_robust_policy;
 };
 
@@ -274,12 +276,12 @@ class get_turns_in_sections
 
 public :
     // Returns true if terminated, false if interrupted
-    template <typename Strategy, typename RobustPolicy, typename Turns, typename InterruptPolicy>
+    template <typename IntersectionStrategy, typename RobustPolicy, typename Turns, typename InterruptPolicy>
     static inline bool apply(
             int source_id1, Geometry1 const& geometry1, Section1 const& sec1,
             int source_id2, Geometry2 const& geometry2, Section2 const& sec2,
             bool skip_larger, bool skip_adjacent,
-            Strategy const& strategy,
+            IntersectionStrategy const& intersection_strategy,
             RobustPolicy const& robust_policy,
             Turns& turns,
             InterruptPolicy& interrupt_policy)
@@ -335,11 +337,11 @@ public :
             unique_sub_range_from_section
                 <
                     areal1, Section1, point1_type, circular1_iterator,
-                    Strategy, RobustPolicy
+                    IntersectionStrategy, RobustPolicy
                 > unique_sub_range1(sec1, index1,
                                     circular1_iterator(begin_range_1, end_range_1, next1, true),
                                     *prev1, *it1,
-                                    strategy, robust_policy);
+                                    robust_policy);
 
             signed_size_type index2 = sec2.begin_index;
             signed_size_type ndi2 = sec2.non_duplicate_index;
@@ -388,11 +390,11 @@ public :
                     unique_sub_range_from_section
                         <
                             areal2, Section2, point2_type, circular2_iterator,
-                            Strategy, RobustPolicy
+                            IntersectionStrategy, RobustPolicy
                         > unique_sub_range2(sec2, index2,
                                             circular2_iterator(begin_range_2, end_range_2, next2),
                                             *prev2, *it2,
-                                            strategy, robust_policy);
+                                            robust_policy);
 
                     typedef typename boost::range_value<Turns>::type turn_info;
 
@@ -407,7 +409,7 @@ public :
                     std::size_t const size_before = boost::size(turns);
 
                     TurnPolicy::apply(unique_sub_range1, unique_sub_range2,
-                                      ti, strategy, robust_policy,
+                                      ti, intersection_strategy, robust_policy,
                                       std::back_inserter(turns));
 
                     if (InterruptPolicy::enabled)
@@ -462,7 +464,7 @@ template
     typename Geometry1, typename Geometry2,
     bool Reverse1, bool Reverse2,
     typename TurnPolicy,
-    typename Strategy,
+    typename IntersectionStrategy,
     typename RobustPolicy,
     typename Turns,
     typename InterruptPolicy
@@ -473,20 +475,20 @@ struct section_visitor
     Geometry1 const& m_geometry1;
     int m_source_id2;
     Geometry2 const& m_geometry2;
-    Strategy const& m_strategy;
+    IntersectionStrategy const& m_intersection_strategy;
     RobustPolicy const& m_rescale_policy;
     Turns& m_turns;
     InterruptPolicy& m_interrupt_policy;
 
     section_visitor(int id1, Geometry1 const& g1,
                     int id2, Geometry2 const& g2,
-                    Strategy const& strategy,
+                    IntersectionStrategy const& intersection_strategy,
                     RobustPolicy const& robust_policy,
                     Turns& turns,
                     InterruptPolicy& ip)
         : m_source_id1(id1), m_geometry1(g1)
         , m_source_id2(id2), m_geometry2(g2)
-        , m_strategy(strategy)
+        , m_intersection_strategy(intersection_strategy)
         , m_rescale_policy(robust_policy)
         , m_turns(turns)
         , m_interrupt_policy(ip)
@@ -497,7 +499,7 @@ struct section_visitor
     {
         if (! detail::disjoint::disjoint_box_box(sec1.bounding_box,
                                                  sec2.bounding_box,
-                                                 m_strategy) )
+                                                 m_intersection_strategy.get_disjoint_box_box_strategy()))
         {
             // false if interrupted
             return get_turns_in_sections
@@ -510,7 +512,7 @@ struct section_visitor
                     >::apply(m_source_id1, m_geometry1, sec1,
                              m_source_id2, m_geometry2, sec2,
                              false, false,
-                             m_strategy,
+                             m_intersection_strategy,
                              m_rescale_policy,
                              m_turns, m_interrupt_policy);
         }
@@ -529,11 +531,11 @@ class get_turns_generic
 {
 
 public:
-    template <typename Strategy, typename RobustPolicy, typename Turns, typename InterruptPolicy>
+    template <typename IntersectionStrategy, typename RobustPolicy, typename Turns, typename InterruptPolicy>
     static inline void apply(
             int source_id1, Geometry1 const& geometry1,
             int source_id2, Geometry2 const& geometry2,
-            Strategy const& strategy,
+            IntersectionStrategy const& intersection_strategy,
             RobustPolicy const& robust_policy,
             Turns& turns,
             InterruptPolicy& interrupt_policy)
@@ -554,10 +556,15 @@ public:
         sections_type sec1, sec2;
         typedef std::integer_sequence<std::size_t, 0, 1> dimensions;
 
+        typename IntersectionStrategy::envelope_strategy_type const
+            envelope_strategy = intersection_strategy.get_envelope_strategy();
+        typename IntersectionStrategy::expand_strategy_type const
+            expand_strategy = intersection_strategy.get_expand_strategy();
+
         geometry::sectionalize<Reverse1, dimensions>(geometry1, robust_policy,
-                                                     sec1, strategy, 0);
+                sec1, envelope_strategy, expand_strategy, 0);
         geometry::sectionalize<Reverse2, dimensions>(geometry2, robust_policy,
-                                                     sec2, strategy, 1);
+                sec2, envelope_strategy, expand_strategy, 1);
 
         // ... and then partition them, intersecting overlapping sections in visitor method
         section_visitor
@@ -565,17 +572,27 @@ public:
                 Geometry1, Geometry2,
                 Reverse1, Reverse2,
                 TurnPolicy,
-                Strategy, RobustPolicy,
+                IntersectionStrategy, RobustPolicy,
                 Turns, InterruptPolicy
             > visitor(source_id1, geometry1, source_id2, geometry2,
-                      strategy, robust_policy, turns, interrupt_policy);
+                      intersection_strategy, robust_policy,
+                      turns, interrupt_policy);
+
+        typedef detail::section::get_section_box
+            <
+                typename IntersectionStrategy::expand_box_strategy_type
+            > get_section_box_type;
+        typedef detail::section::overlaps_section_box
+            <
+                typename IntersectionStrategy::disjoint_box_box_strategy_type
+            > overlaps_section_box_type;
 
         geometry::partition
             <
                 box_type
             >::apply(sec1, sec2, visitor,
-                     detail::section::get_section_box<Strategy>(strategy),
-                     detail::section::overlaps_section_box<Strategy>(strategy));
+                     get_section_box_type(),
+                     overlaps_section_box_type());
     }
 };
 
@@ -1077,10 +1094,10 @@ template
 >
 struct get_turns_reversed
 {
-    template <typename Strategy, typename RobustPolicy, typename Turns, typename InterruptPolicy>
+    template <typename IntersectionStrategy, typename RobustPolicy, typename Turns, typename InterruptPolicy>
     static inline void apply(int source_id1, Geometry1 const& g1,
                              int source_id2, Geometry2 const& g2,
-                             Strategy const& strategy,
+                             IntersectionStrategy const& intersection_strategy,
                              RobustPolicy const& robust_policy,
                              Turns& turns,
                              InterruptPolicy& interrupt_policy)
@@ -1092,7 +1109,7 @@ struct get_turns_reversed
                 Reverse2, Reverse1,
                 TurnPolicy
             >::apply(source_id2, g2, source_id1, g1,
-                     strategy, robust_policy,
+                     intersection_strategy, robust_policy,
                      turns, interrupt_policy);
     }
 };
@@ -1123,14 +1140,14 @@ template
     typename AssignPolicy,
     typename Geometry1,
     typename Geometry2,
-    typename Strategy,
+    typename IntersectionStrategy,
     typename RobustPolicy,
     typename Turns,
     typename InterruptPolicy
 >
 inline void get_turns(Geometry1 const& geometry1,
                       Geometry2 const& geometry2,
-                      Strategy const& strategy,
+                      IntersectionStrategy const& intersection_strategy,
                       RobustPolicy const& robust_policy,
                       Turns& turns,
                       InterruptPolicy& interrupt_policy)
@@ -1161,7 +1178,7 @@ inline void get_turns(Geometry1 const& geometry1,
             >
         >::apply(0, geometry1,
                  1, geometry2,
-                 strategy,
+                 intersection_strategy,
                  robust_policy,
                  turns, interrupt_policy);
 }

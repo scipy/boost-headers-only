@@ -1,5 +1,5 @@
 /*
-Copyright Rene Ferdinand Rivera Morell 2013-2020
+Copyright Rene Rivera 2013-2015
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE_1_0.txt or copy at
 http://www.boost.org/LICENSE_1_0.txt)
@@ -11,7 +11,6 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/other/endian.h>
-#include <boost/predef/other/wordsize.h>
-#include <boost/predef/other/workaround.h>
+/*#include <boost/predef/other/.h>*/
 
 #endif

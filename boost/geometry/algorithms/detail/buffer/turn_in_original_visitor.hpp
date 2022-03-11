@@ -2,8 +2,8 @@
 
 // Copyright (c) 2014 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2016-2020.
-// Modifications copyright (c) 2016-2020 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2016, 2018.
+// Modifications copyright (c) 2016-2018 Oracle and/or its affiliates.
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Use, modification and distribution is subject to the Boost Software License,
@@ -31,40 +31,31 @@ namespace boost { namespace geometry
 namespace detail { namespace buffer
 {
 
-
-template <typename Strategy>    
 struct original_get_box
 {
-    explicit original_get_box(Strategy const& strategy)
-        : m_strategy(strategy)
-    {}
-
     template <typename Box, typename Original>
-    inline void apply(Box& total, Original const& original) const
+    static inline void apply(Box& total, Original const& original)
     {
         assert_coordinate_type_equal(total, original.m_box);
-        geometry::expand(total, original.m_box, m_strategy);
-    }
+        typedef typename strategy::expand::services::default_strategy
+            <
+                box_tag, typename cs_tag<Box>::type
+            >::type expand_strategy_type;
 
-    Strategy const& m_strategy;
+        geometry::expand(total, original.m_box, expand_strategy_type());
+    }
 };
 
-template <typename Strategy>
+template <typename DisjointBoxBoxStrategy>
 struct original_overlaps_box
 {
-    explicit original_overlaps_box(Strategy const& strategy)
-        : m_strategy(strategy)
-    {}
-
     template <typename Box, typename Original>
-    inline bool apply(Box const& box, Original const& original) const
+    static inline bool apply(Box const& box, Original const& original)
     {
         assert_coordinate_type_equal(box, original.m_box);
         return ! detail::disjoint::disjoint_box_box(box, original.m_box,
-                                                    m_strategy);
+                                                    DisjointBoxBoxStrategy());
     }
-
-    Strategy const& m_strategy;
 };
 
 struct include_turn_policy
@@ -76,15 +67,11 @@ struct include_turn_policy
     }
 };
 
-template <typename Strategy>
+template <typename DisjointPointBoxStrategy>
 struct turn_in_original_overlaps_box
 {
-    explicit turn_in_original_overlaps_box(Strategy const& strategy)
-        : m_strategy(strategy)
-    {}
-
     template <typename Box, typename Turn>
-    inline bool apply(Box const& box, Turn const& turn) const
+    static inline bool apply(Box const& box, Turn const& turn)
     {
         if (! turn.is_turn_traversable || turn.within_original)
         {
@@ -93,10 +80,8 @@ struct turn_in_original_overlaps_box
         }
 
         return ! geometry::detail::disjoint::disjoint_point_box(
-                    turn.point, box, m_strategy);
+                    turn.point, box, DisjointPointBoxStrategy());
     }
-
-    Strategy const& m_strategy;
 };
 
 //! Check if specified is in range of specified iterators
@@ -225,13 +210,13 @@ inline int point_in_original(Point const& point, Original const& original,
 }
 
 
-template <typename Turns, typename Strategy>
+template <typename Turns, typename PointInGeometryStrategy>
 class turn_in_original_visitor
 {
 public:
-    turn_in_original_visitor(Turns& turns, Strategy const& strategy)
+    turn_in_original_visitor(Turns& turns, PointInGeometryStrategy const& strategy)
         : m_mutable_turns(turns)
-        , m_strategy(strategy)
+        , m_point_in_geometry_strategy(strategy)
     {}
 
     template <typename Turn, typename Original>
@@ -249,14 +234,13 @@ public:
             return true;
         }
 
-        if (geometry::disjoint(turn.point, original.m_box, m_strategy))
+        if (geometry::disjoint(turn.point, original.m_box))
         {
             // Skip all disjoint
             return true;
         }
 
-        int const code = point_in_original(turn.point, original,
-                                           m_strategy.relate(turn.point, original.m_ring));
+        int const code = point_in_original(turn.point, original, m_point_in_geometry_strategy);
 
         if (code == -1)
         {
@@ -293,7 +277,7 @@ public:
 
 private :
     Turns& m_mutable_turns;
-    Strategy const& m_strategy;
+    PointInGeometryStrategy const& m_point_in_geometry_strategy;
 };
 
 

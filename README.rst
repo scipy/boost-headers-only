@@ -36,3 +36,10 @@ run very simply as follows:
 To update the version of Boost, give a different Boost version to the
 `--boost-version` option in the format: `[major].[minor].[patch]`.
 The `-v` option is optional and turns on verbose logging.
+
+Patches
+-------
+
+Patches (e.g., from cherry-picking upstream commits) can be applied by placing
+`.patch` files generated using `git diff` in the `patches` directory.  See
+`PATCHES <patches/PATCHES.rst>`_ for more information.

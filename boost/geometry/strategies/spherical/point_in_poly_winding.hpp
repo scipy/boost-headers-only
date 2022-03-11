@@ -557,13 +557,27 @@ namespace services
 template <typename PointLike, typename Geometry, typename AnyTag1, typename AnyTag2>
 struct default_strategy<PointLike, Geometry, AnyTag1, AnyTag2, pointlike_tag, polygonal_tag, spherical_tag, spherical_tag>
 {
-    typedef within::spherical_winding<> type;
+    typedef within::detail::spherical_winding_base
+        <
+            typename strategy::side::services::default_strategy
+                <
+                    typename cs_tag<PointLike>::type
+                >::type,
+            void
+        > type;
 };
 
 template <typename PointLike, typename Geometry, typename AnyTag1, typename AnyTag2>
 struct default_strategy<PointLike, Geometry, AnyTag1, AnyTag2, pointlike_tag, linear_tag, spherical_tag, spherical_tag>
 {
-    typedef within::spherical_winding<> type;
+    typedef within::detail::spherical_winding_base
+        <
+            typename strategy::side::services::default_strategy
+                <
+                    typename cs_tag<PointLike>::type
+                >::type,
+            void
+        > type;
 };
 
 } // namespace services
@@ -581,13 +595,27 @@ namespace strategy { namespace covered_by { namespace services
 template <typename PointLike, typename Geometry, typename AnyTag1, typename AnyTag2>
 struct default_strategy<PointLike, Geometry, AnyTag1, AnyTag2, pointlike_tag, polygonal_tag, spherical_tag, spherical_tag>
 {
-    typedef within::spherical_winding<> type;
+    typedef within::detail::spherical_winding_base
+        <
+            typename strategy::side::services::default_strategy
+                <
+                    typename cs_tag<PointLike>::type
+                >::type,
+            void
+        > type;
 };
 
 template <typename PointLike, typename Geometry, typename AnyTag1, typename AnyTag2>
 struct default_strategy<PointLike, Geometry, AnyTag1, AnyTag2, pointlike_tag, linear_tag, spherical_tag, spherical_tag>
 {
-    typedef within::spherical_winding<> type;
+    typedef within::detail::spherical_winding_base
+        <
+            typename strategy::side::services::default_strategy
+                <
+                    typename cs_tag<PointLike>::type
+                >::type,
+            void
+        > type;
 };
 
 }}} // namespace strategy::covered_by::services

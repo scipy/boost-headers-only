@@ -1,33 +1,40 @@
-#ifndef BOOST_QVM_ERROR_HPP_INCLUDED
-#define BOOST_QVM_ERROR_HPP_INCLUDED
+//Copyright (c) 2008-2016 Emil Dotchevski and Reverge Studios, Inc.
 
-/// Copyright (c) 2008-2021 Emil Dotchevski and Reverge Studios, Inc.
+//Distributed under the Boost Software License, Version 1.0. (See accompanying
+//file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-/// Distributed under the Boost Software License, Version 1.0. (See accompanying
-/// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#ifndef BOOST_QVM_92B1247AAE1111DE9655F2FC55D89593
+#define BOOST_QVM_92B1247AAE1111DE9655F2FC55D89593
 
+#include "boost/exception/exception.hpp"
+#include "boost/exception/error_info.hpp"
 #include <exception>
 
-namespace boost { namespace qvm {
-
-struct
-error:
-    std::exception
+namespace
+boost
     {
-    char const *
-    what() const throw()
+    namespace
+    qvm
         {
-        return "Boost QVM error";
+        struct
+        error:
+            virtual boost::exception,
+            virtual std::exception
+            {
+            char const *
+            what() const throw()
+                {
+                return "Boost QVM error";
+                }
+
+            ~error() throw()
+                {
+                }
+            };
+
+        struct zero_determinant_error: virtual error { };
+        struct zero_magnitude_error: virtual error { };
         }
-
-    ~error() throw()
-        {
-        }
-    };
-
-struct zero_determinant_error: error { };
-struct zero_magnitude_error: error { };
-
-} }
+    }
 
 #endif

@@ -212,24 +212,29 @@ inline bool point_on_border_within(Geometry1 const& geometry1,
         && geometry::within(pt, geometry2, strategy);
 }
 
-template <typename FirstGeometry, typename SecondGeometry, typename Strategy>
+template <typename FirstGeometry, typename SecondGeometry, typename IntersectionStrategy>
 inline bool rings_containing(FirstGeometry const& geometry1,
                              SecondGeometry const& geometry2,
-                             Strategy const& strategy)
+                             IntersectionStrategy const& strategy)
 {
+    // TODO: This will be removed when IntersectionStrategy is replaced with
+    //       UmbrellaStrategy
+    auto const point_in_ring_strategy
+        = strategy.template get_point_in_geometry_strategy<FirstGeometry, SecondGeometry>();
+
     return geometry::detail::any_range_of(geometry2, [&](auto const& range)
     {
-        return point_on_border_within(range, geometry1, strategy);
+        return point_on_border_within(range, geometry1, point_in_ring_strategy);
     });
 }
 
 template <typename Geometry1, typename Geometry2>
 struct areal_areal
 {
-    template <typename Strategy>
+    template <typename IntersectionStrategy>
     static inline bool apply(Geometry1 const& geometry1,
                              Geometry2 const& geometry2,
-                             Strategy const& strategy)
+                             IntersectionStrategy const& strategy)
     {
         typedef typename geometry::point_type<Geometry1>::type point_type;
         typedef detail::overlay::turn_info<point_type> turn_info;
@@ -406,7 +411,7 @@ struct self_touches
     {
         concepts::check<Geometry const>();
 
-        typedef typename strategies::relate::services::default_strategy
+        typedef typename strategy::relate::services::default_strategy
             <
                 Geometry, Geometry
             >::type strategy_type;
@@ -414,19 +419,18 @@ struct self_touches
         typedef detail::overlay::turn_info<point_type> turn_info;
 
         typedef detail::overlay::get_turn_info
-            <
-                detail::overlay::assign_null_policy
-            > policy_type;
+        <
+            detail::overlay::assign_null_policy
+        > policy_type;
 
         std::deque<turn_info> turns;
         detail::touches::areal_interrupt_policy policy;
         strategy_type strategy;
         // TODO: skip_adjacent should be set to false
         detail::self_get_turn_points::get_turns
-            <
-                false, policy_type
-            >::apply(geometry, strategy, detail::no_rescale_policy(),
-                     turns, policy, 0, true);
+        <
+            false, policy_type
+        >::apply(geometry, strategy, detail::no_rescale_policy(), turns, policy, 0, true);
 
         return policy.result();
     }

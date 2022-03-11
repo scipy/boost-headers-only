@@ -15,12 +15,12 @@ namespace backends {
 template <class Backend, int cat>
 struct extract_exponent_type
 {
-   using type = int;
+   typedef int type;
 };
 template <class Backend>
 struct extract_exponent_type<Backend, number_kind_floating_point>
 {
-   using type = typename Backend::exponent_type;
+   typedef typename Backend::exponent_type type;
 };
 
 }}} // namespace boost::multiprecision::backends

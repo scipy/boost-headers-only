@@ -96,19 +96,17 @@ namespace nowide {
             swap(owns_buffer_, rhs.owns_buffer_);
             swap(last_char_[0], rhs.last_char_[0]);
             swap(mode_, rhs.mode_);
-
             // Fixup last_char references
-            if(pbase() == rhs.last_char_)
-                setp(last_char_, (pptr() == epptr()) ? last_char_ : last_char_ + 1);
-            if(eback() == rhs.last_char_)
-                setg(last_char_, (gptr() == rhs.last_char_) ? last_char_ : last_char_ + 1, last_char_ + 1);
-
-            if(rhs.pbase() == last_char_)
-                rhs.setp(rhs.last_char_, (rhs.pptr() == rhs.epptr()) ? rhs.last_char_ : rhs.last_char_ + 1);
-            if(rhs.eback() == last_char_)
+            if(epptr() == rhs.last_char_)
+                setp(last_char_, last_char_);
+            if(egptr() == rhs.last_char_)
+                rhs.setg(last_char_, gptr() == rhs.last_char_ ? last_char_ : last_char_ + 1, last_char_ + 1);
+            if(rhs.epptr() == last_char_)
+                setp(rhs.last_char_, rhs.last_char_);
+            if(rhs.egptr() == rhs.last_char_)
             {
                 rhs.setg(rhs.last_char_,
-                         (rhs.gptr() == last_char_) ? rhs.last_char_ : rhs.last_char_ + 1,
+                         rhs.gptr() == last_char_ ? rhs.last_char_ : rhs.last_char_ + 1,
                          rhs.last_char_ + 1);
             }
         }
@@ -174,8 +172,6 @@ namespace nowide {
                 buffer_ = NULL;
                 owns_buffer_ = false;
             }
-            setg(0, 0, 0);
-            setp(0, 0);
             return res ? this : NULL;
         }
         ///
@@ -230,7 +226,7 @@ namespace nowide {
             if(n > 0)
             {
                 if(std::fwrite(pbase(), 1, n, file_) != n)
-                    return EOF;
+                    return -1;
                 setp(buffer_, buffer_ + buffer_size_);
                 if(c != EOF)
                 {
@@ -279,11 +275,7 @@ namespace nowide {
                 return EOF;
             if(!stop_writing())
                 return EOF;
-            // In text mode we cannot use a buffer size of more than 1 (i.e. single char only)
-            // This is due to the need to seek back in case of a sync to "put back" unread chars.
-            // However determining the number of chars to seek back is impossible in case there are newlines
-            // as we cannot know if those were converted.
-            if(buffer_size_ == 0 || !(mode_ & std::ios_base::binary))
+            if(buffer_size_ == 0)
             {
                 const int c = std::fgetc(file_);
                 if(c == EOF)

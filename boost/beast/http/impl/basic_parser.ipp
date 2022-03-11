@@ -82,17 +82,7 @@ basic_parser<isRequest>::
 put(net::const_buffer buffer,
     error_code& ec)
 {
-    // If this goes off you have tried to parse more data after the parser
-    // has completed. A common cause of this is re-using a parser, which is
-    // not supported. If you need to re-use a parser, consider storing it
-    // in an optional. Then reset() and emplace() prior to parsing each new
-    // message.
-    BOOST_ASSERT(!is_done());
-    if (is_done())
-    {
-        ec = error::stale_parser;
-        return 0;
-    }
+    BOOST_ASSERT(state_ != state::complete);
     auto p = static_cast<char const*>(buffer.data());
     auto n = buffer.size();
     auto const p0 = p;
@@ -164,8 +154,6 @@ loop:
             goto done;
         }
         finish_header(ec, is_request{});
-        if(ec)
-            goto done;
         break;
 
     case state::body0:

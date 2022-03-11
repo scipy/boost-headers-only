@@ -13,13 +13,19 @@ namespace boost {
 namespace multiprecision {
 namespace backends {
 
+#ifdef BOOST_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4127) // conditional expression is constant
+#endif
+
 template <class Backend>
 struct debug_adaptor
 {
-   using signed_types = typename Backend::signed_types  ;
-   using unsigned_types = typename Backend::unsigned_types;
-   using float_types = typename Backend::float_types   ;
-   using exponent_type = typename extract_exponent_type<Backend, number_category<Backend>::value>::type;
+   typedef typename Backend::signed_types   signed_types;
+   typedef typename Backend::unsigned_types unsigned_types;
+   typedef typename Backend::float_types    float_types;
+   typedef typename extract_exponent_type<
+       Backend, number_category<Backend>::value>::type exponent_type;
 
  private:
    std::string debug_value;
@@ -57,7 +63,7 @@ struct debug_adaptor
       return *this;
    }
    template <class T>
-   debug_adaptor(const T& i, const typename std::enable_if<std::is_convertible<T, Backend>::value>::type* = 0)
+   debug_adaptor(const T& i, const typename enable_if_c<is_convertible<T, Backend>::value>::type* = 0)
        : m_value(i)
    {
       update_view();
@@ -69,7 +75,7 @@ struct debug_adaptor
       update_view();
    }
    template <class T>
-   typename std::enable_if<boost::multiprecision::detail::is_arithmetic<T>::value || std::is_convertible<T, Backend>::value, debug_adaptor&>::type operator=(const T& i)
+   typename enable_if_c<is_arithmetic<T>::value || is_convertible<T, Backend>::value, debug_adaptor&>::type operator=(const T& i)
    {
       m_value = i;
       update_view();
@@ -116,23 +122,23 @@ struct debug_adaptor
    void serialize(Archive& ar, const unsigned int /*version*/)
    {
       ar & boost::make_nvp("value", m_value);
-      using tag = typename Archive::is_loading;
+      typedef typename Archive::is_loading tag;
       if (tag::value)
          update_view();
    }
-   static unsigned default_precision() noexcept
+   static unsigned default_precision() BOOST_NOEXCEPT
    {
       return Backend::default_precision();
    }
-   static void default_precision(unsigned v) noexcept
+   static void default_precision(unsigned v) BOOST_NOEXCEPT
    {
       Backend::default_precision(v);
    }
-   unsigned precision() const noexcept
+   unsigned precision() const BOOST_NOEXCEPT
    {
       return value().precision();
    }
-   void precision(unsigned digits10) noexcept
+   void precision(unsigned digits10) BOOST_NOEXCEPT
    {
       value().precision(digits10);
    }
@@ -485,6 +491,9 @@ template <class Backend>
 struct number_category<backends::debug_adaptor<Backend> > : public number_category<Backend>
 {};
 
+#ifdef BOOST_MSVC
+#pragma warning(pop)
+#endif
 }} // namespace boost::multiprecision
 
 namespace std {
@@ -493,19 +502,19 @@ template <class Backend, boost::multiprecision::expression_template_option Expre
 class numeric_limits<boost::multiprecision::number<boost::multiprecision::backends::debug_adaptor<Backend>, ExpressionTemplates> >
     : public std::numeric_limits<boost::multiprecision::number<Backend, ExpressionTemplates> >
 {
-   using base_type = std::numeric_limits<boost::multiprecision::number<Backend, ExpressionTemplates> >                          ;
-   using number_type = boost::multiprecision::number<boost::multiprecision::backends::debug_adaptor<Backend>, ExpressionTemplates>;
+   typedef std::numeric_limits<boost::multiprecision::number<Backend, ExpressionTemplates> >                           base_type;
+   typedef boost::multiprecision::number<boost::multiprecision::backends::debug_adaptor<Backend>, ExpressionTemplates> number_type;
 
  public:
-   static number_type(min)() noexcept { return (base_type::min)(); }
-   static number_type(max)() noexcept { return (base_type::max)(); }
-   static number_type lowest() noexcept { return -(max)(); }
-   static number_type epsilon() noexcept { return base_type::epsilon(); }
-   static number_type round_error() noexcept { return epsilon() / 2; }
-   static number_type infinity() noexcept { return base_type::infinity(); }
-   static number_type quiet_NaN() noexcept { return base_type::quiet_NaN(); }
-   static number_type signaling_NaN() noexcept { return base_type::signaling_NaN(); }
-   static number_type denorm_min() noexcept { return base_type::denorm_min(); }
+   static number_type(min)() BOOST_NOEXCEPT { return (base_type::min)(); }
+   static number_type(max)() BOOST_NOEXCEPT { return (base_type::max)(); }
+   static number_type lowest() BOOST_NOEXCEPT { return -(max)(); }
+   static number_type epsilon() BOOST_NOEXCEPT { return base_type::epsilon(); }
+   static number_type round_error() BOOST_NOEXCEPT { return epsilon() / 2; }
+   static number_type infinity() BOOST_NOEXCEPT { return base_type::infinity(); }
+   static number_type quiet_NaN() BOOST_NOEXCEPT { return base_type::quiet_NaN(); }
+   static number_type signaling_NaN() BOOST_NOEXCEPT { return base_type::signaling_NaN(); }
+   static number_type denorm_min() BOOST_NOEXCEPT { return base_type::denorm_min(); }
 };
 
 } // namespace std

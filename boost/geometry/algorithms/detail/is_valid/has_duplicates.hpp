@@ -33,12 +33,11 @@ namespace boost { namespace geometry
 namespace detail { namespace is_valid
 {
 
-template <typename Range, closure_selector Closure>
+template <typename Range, closure_selector Closure, typename CSTag>
 struct has_duplicates
 {
-    template <typename VisitPolicy, typename Strategy>
-    static inline bool apply(Range const& range, VisitPolicy& visitor,
-                             Strategy const& )
+    template <typename VisitPolicy>
+    static inline bool apply(Range const& range, VisitPolicy& visitor)
     {
         boost::ignore_unused(visitor);
 
@@ -59,7 +58,7 @@ struct has_duplicates
             <
                 typename boost::range_value<Range>::type,
                 -1,
-                typename Strategy::cs_tag
+                CSTag
             > equal;
 
         const_iterator it = boost::const_begin(view);

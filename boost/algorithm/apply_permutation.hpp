@@ -19,6 +19,7 @@
 #define BOOST_ALGORITHM_APPLY_PERMUTATION_HPP
 
 #include <algorithm>
+#include <type_traits>
 
 #include <boost/config.hpp>
 #include <boost/range/begin.hpp>

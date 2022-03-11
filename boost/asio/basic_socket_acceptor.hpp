@@ -2,7 +2,7 @@
 // basic_socket_acceptor.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2021 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -62,12 +62,6 @@ class basic_socket_acceptor;
  * @e Distinct @e objects: Safe.@n
  * @e Shared @e objects: Unsafe.
  *
- * Synchronous @c accept operations are thread safe, if the underlying
- * operating system calls are also thread safe. This means that it is permitted
- * to perform concurrent calls to synchronous @c accept operations on a single
- * socket object. Other synchronous operations, such as @c open or @c close, are
- * not thread safe.
- *
  * @par Example
  * Opening a socket acceptor with the SO_REUSEADDR option enabled:
  * @code
@@ -126,7 +120,7 @@ public:
    * acceptor.
    */
   explicit basic_socket_acceptor(const executor_type& ex)
-    : impl_(0, ex)
+    : impl_(ex)
   {
   }
 
@@ -142,10 +136,10 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_socket_acceptor(ExecutionContext& context,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
-    : impl_(0, 0, context)
+      >::type* = 0)
+    : impl_(context)
   {
   }
 
@@ -162,7 +156,7 @@ public:
    * @throws boost::system::system_error Thrown on failure.
    */
   basic_socket_acceptor(const executor_type& ex, const protocol_type& protocol)
-    : impl_(0, ex)
+    : impl_(ex)
   {
     boost::system::error_code ec;
     impl_.get_service().open(impl_.get_implementation(), protocol, ec);
@@ -184,11 +178,10 @@ public:
   template <typename ExecutionContext>
   basic_socket_acceptor(ExecutionContext& context,
       const protocol_type& protocol,
-      typename constraint<
-        is_convertible<ExecutionContext&, execution_context&>::value,
-        defaulted_constraint
-      >::type = defaulted_constraint())
-    : impl_(0, 0, context)
+      typename enable_if<
+        is_convertible<ExecutionContext&, execution_context&>::value
+      >::type* = 0)
+    : impl_(context)
   {
     boost::system::error_code ec;
     impl_.get_service().open(impl_.get_implementation(), protocol, ec);
@@ -224,7 +217,7 @@ public:
    */
   basic_socket_acceptor(const executor_type& ex,
       const endpoint_type& endpoint, bool reuse_addr = true)
-    : impl_(0, ex)
+    : impl_(ex)
   {
     boost::system::error_code ec;
     const protocol_type protocol = endpoint.protocol();
@@ -273,10 +266,10 @@ public:
   template <typename ExecutionContext>
   basic_socket_acceptor(ExecutionContext& context,
       const endpoint_type& endpoint, bool reuse_addr = true,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
-    : impl_(0, 0, context)
+      >::type* = 0)
+    : impl_(context)
   {
     boost::system::error_code ec;
     const protocol_type protocol = endpoint.protocol();
@@ -312,7 +305,7 @@ public:
    */
   basic_socket_acceptor(const executor_type& ex,
       const protocol_type& protocol, const native_handle_type& native_acceptor)
-    : impl_(0, ex)
+    : impl_(ex)
   {
     boost::system::error_code ec;
     impl_.get_service().assign(impl_.get_implementation(),
@@ -338,10 +331,10 @@ public:
   template <typename ExecutionContext>
   basic_socket_acceptor(ExecutionContext& context,
       const protocol_type& protocol, const native_handle_type& native_acceptor,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
-    : impl_(0, 0, context)
+      >::type* = 0)
+    : impl_(context)
   {
     boost::system::error_code ec;
     impl_.get_service().assign(impl_.get_implementation(),
@@ -401,10 +394,10 @@ public:
    */
   template <typename Protocol1, typename Executor1>
   basic_socket_acceptor(basic_socket_acceptor<Protocol1, Executor1>&& other,
-      typename constraint<
+      typename enable_if<
         is_convertible<Protocol1, Protocol>::value
           && is_convertible<Executor1, Executor>::value
-      >::type = 0)
+      >::type* = 0)
     : impl_(std::move(other.impl_))
   {
   }
@@ -422,7 +415,7 @@ public:
    * constructor.
    */
   template <typename Protocol1, typename Executor1>
-  typename constraint<
+  typename enable_if<
     is_convertible<Protocol1, Protocol>::value
       && is_convertible<Executor1, Executor>::value,
     basic_socket_acceptor&
@@ -1260,9 +1253,9 @@ public:
    */
   template <typename Protocol1, typename Executor1>
   void accept(basic_socket<Protocol1, Executor1>& peer,
-      typename constraint<
+      typename enable_if<
         is_convertible<Protocol, Protocol1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     boost::system::error_code ec;
     impl_.get_service().accept(impl_.get_implementation(),
@@ -1296,9 +1289,9 @@ public:
   template <typename Protocol1, typename Executor1>
   BOOST_ASIO_SYNC_OP_VOID accept(
       basic_socket<Protocol1, Executor1>& peer, boost::system::error_code& ec,
-      typename constraint<
+      typename enable_if<
         is_convertible<Protocol, Protocol1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     impl_.get_service().accept(impl_.get_implementation(),
         peer, static_cast<endpoint_type*>(0), ec);
@@ -1351,9 +1344,9 @@ public:
   async_accept(basic_socket<Protocol1, Executor1>& peer,
       BOOST_ASIO_MOVE_ARG(AcceptHandler) handler
         BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type),
-      typename constraint<
+      typename enable_if<
         is_convertible<Protocol, Protocol1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     return async_initiate<AcceptHandler, void (boost::system::error_code)>(
         initiate_async_accept(this), handler,
@@ -1626,10 +1619,10 @@ public:
   template <typename Executor1>
   typename Protocol::socket::template rebind_executor<Executor1>::other
   accept(const Executor1& ex,
-      typename constraint<
+      typename enable_if<
         is_executor<Executor1>::value
           || execution::is_executor<Executor1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     boost::system::error_code ec;
     typename Protocol::socket::template
@@ -1666,9 +1659,9 @@ public:
   typename Protocol::socket::template rebind_executor<
       typename ExecutionContext::executor_type>::other
   accept(ExecutionContext& context,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      >::type* = 0)
   {
     boost::system::error_code ec;
     typename Protocol::socket::template rebind_executor<
@@ -1709,10 +1702,10 @@ public:
   template <typename Executor1>
   typename Protocol::socket::template rebind_executor<Executor1>::other
   accept(const Executor1& ex, boost::system::error_code& ec,
-      typename constraint<
+      typename enable_if<
         is_executor<Executor1>::value
           || execution::is_executor<Executor1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typename Protocol::socket::template
       rebind_executor<Executor1>::other peer(ex);
@@ -1752,9 +1745,9 @@ public:
   typename Protocol::socket::template rebind_executor<
       typename ExecutionContext::executor_type>::other
   accept(ExecutionContext& context, boost::system::error_code& ec,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typename Protocol::socket::template rebind_executor<
         typename ExecutionContext::executor_type>::other peer(context);
@@ -1816,10 +1809,10 @@ public:
   async_accept(const Executor1& ex,
       BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler
         BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type),
-      typename constraint<
+      typename enable_if<
         is_executor<Executor1>::value
           || execution::is_executor<Executor1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typedef typename Protocol::socket::template rebind_executor<
       Executor1>::other other_socket_type;
@@ -1886,9 +1879,9 @@ public:
   async_accept(ExecutionContext& context,
       BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler
         BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type),
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typedef typename Protocol::socket::template rebind_executor<
       typename ExecutionContext::executor_type>::other other_socket_type;
@@ -2075,10 +2068,10 @@ public:
   template <typename Executor1>
   typename Protocol::socket::template rebind_executor<Executor1>::other
   accept(const Executor1& ex, endpoint_type& peer_endpoint,
-      typename constraint<
+      typename enable_if<
         is_executor<Executor1>::value
           || execution::is_executor<Executor1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     boost::system::error_code ec;
     typename Protocol::socket::template
@@ -2121,9 +2114,9 @@ public:
   typename Protocol::socket::template rebind_executor<
       typename ExecutionContext::executor_type>::other
   accept(ExecutionContext& context, endpoint_type& peer_endpoint,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      >::type* = 0)
   {
     boost::system::error_code ec;
     typename Protocol::socket::template rebind_executor<
@@ -2171,10 +2164,10 @@ public:
   typename Protocol::socket::template rebind_executor<Executor1>::other
   accept(const executor_type& ex,
       endpoint_type& peer_endpoint, boost::system::error_code& ec,
-      typename constraint<
+      typename enable_if<
         is_executor<Executor1>::value
           || execution::is_executor<Executor1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typename Protocol::socket::template
       rebind_executor<Executor1>::other peer(ex);
@@ -2221,9 +2214,9 @@ public:
       typename ExecutionContext::executor_type>::other
   accept(ExecutionContext& context,
       endpoint_type& peer_endpoint, boost::system::error_code& ec,
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typename Protocol::socket::template rebind_executor<
         typename ExecutionContext::executor_type>::other peer(context);
@@ -2292,10 +2285,10 @@ public:
   async_accept(const Executor1& ex, endpoint_type& peer_endpoint,
       BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler
         BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type),
-      typename constraint<
+      typename enable_if<
         is_executor<Executor1>::value
           || execution::is_executor<Executor1>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typedef typename Protocol::socket::template rebind_executor<
       Executor1>::other other_socket_type;
@@ -2369,9 +2362,9 @@ public:
       endpoint_type& peer_endpoint,
       BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler
         BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type),
-      typename constraint<
+      typename enable_if<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      >::type* = 0)
   {
     typedef typename Protocol::socket::template rebind_executor<
       typename ExecutionContext::executor_type>::other other_socket_type;
