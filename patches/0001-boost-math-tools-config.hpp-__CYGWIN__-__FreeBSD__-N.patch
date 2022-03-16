@@ -1,0 +1,26 @@
+From 2bc06432b508a2b02026ffa09fe3b08fa28e95f9 Mon Sep 17 00:00:00 2001
+From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date: Mon, 27 Dec 2021 20:56:55 -0800
+Subject: [PATCH] boost/math/tools/config.hpp [__CYGWIN__, __FreeBSD__]: No
+ longer define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+
+---
+ boost/math/tools/config.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/boost/math/tools/config.hpp b/boost/math/tools/config.hpp
+index 480b3e10..057747ef 100644
+--- a/boost/math/tools/config.hpp
++++ b/boost/math/tools/config.hpp
+@@ -28,7 +28,7 @@
+ 
+ #include <boost/math/tools/user.hpp>
+ 
+-#if (defined(__CYGWIN__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__EMSCRIPTEN__)\
++#if (defined(__NetBSD__) || defined(__EMSCRIPTEN__)\
+    || (defined(__hppa) && !defined(__OpenBSD__)) || (defined(__NO_LONG_DOUBLE_MATH) && (DBL_MANT_DIG != LDBL_MANT_DIG))) \
+    && !defined(BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
+ #  define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+-- 
+2.35.1
+
