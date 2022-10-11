@@ -42,11 +42,11 @@ struct value_to_tag;
     @li a library-provided generic conversion, or
 
     @li a user-provided overload of `tag_invoke`.
-    
+
     In all cases, the conversion is done by calling
     an overload of `tag_invoke` found by argument-dependent
     lookup. Its signature should be similar to:
-    
+
     @code
     T tag_invoke( value_to_tag<T>, value );
     @endcode
@@ -73,27 +73,36 @@ struct value_to_tag;
     <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1895r0.pdf">
         tag_invoke: A general pattern for supporting customisable functions</a>
 */
-#ifdef BOOST_JSON_DOCS
 template<class T>
 T
-value_to(const value& jv);
-#else
-template<class T, class U
-    , typename std::enable_if<
-        ! std::is_reference<T>::value &&
-    std::is_same<U, value>::value>::type*
->
-T
-value_to(const U& jv)
+value_to(const value& jv)
 {
+    BOOST_STATIC_ASSERT(! std::is_reference<T>::value);
     return detail::value_to_impl(
         value_to_tag<typename std::remove_cv<T>::type>(), jv);
 }
+
+/** Convert a @ref value to an object of type `T`.
+
+    This overload is **deleted** and participates in overload resolution only
+    when `U` is not @ref value. The overload exists to prevent unintented
+    creation of temporary @ref value instances, e.g.
+
+    @code
+    auto flag = value_to<bool>(true);
+    @endcode
+*/
+template<class T, class U
+#ifndef BOOST_JSON_DOCS
+    , class = typename std::enable_if<!std::is_same<U, value>::value>::type
 #endif
+>
+T
+value_to(U const& jv) = delete;
 
 /** Determine a @ref value can be converted to `T`.
 
-    If @ref value can be converted to `T` via a 
+    If @ref value can be converted to `T` via a
     call to @ref value_to, the static data member `value`
     is defined as `true`. Otherwise, `value` is
     defined as `false`.
