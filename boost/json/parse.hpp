@@ -54,6 +54,7 @@ BOOST_JSON_NS_BEGIN
         @ref parse_options,
         @ref stream_parser.
 */
+/** @{ */
 BOOST_JSON_DECL
 value
 parse(
@@ -61,6 +62,15 @@ parse(
     error_code& ec,
     storage_ptr sp = {},
     parse_options const& opt = {});
+
+BOOST_JSON_DECL
+value
+parse(
+    string_view s,
+    std::error_code& ec,
+    storage_ptr sp = {},
+    parse_options const& opt = {});
+/** @} */
 
 /** Parse a string of JSON into a @ref value.
 
@@ -78,7 +88,7 @@ parse(
 
     @return A value representing the parsed
     JSON upon success.
-    
+
     @param s The string to parse.
 
     @param sp The memory resource that the new value and all

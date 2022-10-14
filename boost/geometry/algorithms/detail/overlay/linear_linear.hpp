@@ -1,6 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2014-2020, Oracle and/or its affiliates.
+// Copyright (c) 2014-2022, Oracle and/or its affiliates.
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -30,7 +30,7 @@
 
 #include <boost/geometry/algorithms/convert.hpp>
 
-
+#include <boost/geometry/geometries/helper_geometry.hpp>
 
 namespace boost { namespace geometry
 {
@@ -147,13 +147,13 @@ protected:
         typename Turns,
         typename LinearGeometry1,
         typename LinearGeometry2,
-        typename IntersectionStrategy,
+        typename Strategy,
         typename RobustPolicy
     >
     static inline void compute_turns(Turns& turns,
                                      LinearGeometry1 const& linear1,
                                      LinearGeometry2 const& linear2,
-                                     IntersectionStrategy const& strategy,
+                                     Strategy const& strategy,
                                      RobustPolicy const& robust_policy)
     {
         turns.clear();
@@ -182,14 +182,14 @@ protected:
         typename LinearGeometry1,
         typename LinearGeometry2,
         typename OutputIterator,
-        typename IntersectionStrategy
+        typename Strategy
     >
     static inline OutputIterator
     sort_and_follow_turns(Turns& turns,
                           LinearGeometry1 const& linear1,
                           LinearGeometry2 const& linear2,
                           OutputIterator oit,
-                          IntersectionStrategy const& strategy)
+                          Strategy const& strategy)
     {
         // remove turns that have no added value
         turns::filter_continue_turns
@@ -206,7 +206,7 @@ protected:
         turns::remove_duplicate_turns
             <
                 Turns, EnableRemoveDuplicateTurns
-            >::apply(turns);
+            >::apply(turns, strategy);
 
         return detail::overlay::following::linear::follow
             <
@@ -217,7 +217,7 @@ protected:
                 FollowIsolatedPoints,
                 !EnableFilterContinueTurns || OverlayType == overlay_intersection
             >::apply(linear1, linear2, boost::begin(turns), boost::end(turns),
-                     oit, strategy.get_side_strategy());
+                     oit, strategy);
     }
 
 public:

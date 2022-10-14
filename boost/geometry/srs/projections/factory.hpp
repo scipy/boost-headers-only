@@ -2,8 +2,9 @@
 
 // Copyright (c) 2008-2012 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2017-2020.
-// Modifications copyright (c) 2017-2020, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2017-2022.
+// Modifications copyright (c) 2017-2022, Oracle and/or its affiliates.
+// Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Use, modification and distribution is subject to the Boost Software License,
@@ -36,6 +37,7 @@
 #include <boost/geometry/srs/projections/proj/cc.hpp>
 #include <boost/geometry/srs/projections/proj/cea.hpp>
 #include <boost/geometry/srs/projections/proj/chamb.hpp>
+#include <boost/geometry/srs/projections/proj/col_urban.hpp>
 #include <boost/geometry/srs/projections/proj/collg.hpp>
 #include <boost/geometry/srs/projections/proj/crast.hpp>
 #include <boost/geometry/srs/projections/proj/denoy.hpp>
@@ -145,7 +147,7 @@ struct factory_key<srs::detail::proj4_parameters>
     {
         return par.id.name;
     }
-    static const char* get(const char* name, srs::dpar::value_proj id)
+    static const char* get(const char* name, srs::dpar::value_proj )
     {
         return name;
     }
@@ -160,7 +162,7 @@ struct factory_key<srs::dpar::parameters<T> >
     {
         return par.id.id;
     }
-    static srs::dpar::value_proj get(const char* name, srs::dpar::value_proj id)
+    static srs::dpar::value_proj get(const char* , srs::dpar::value_proj id)
     {
         return id;
     }
@@ -203,6 +205,7 @@ public:
         detail::cc_init(*this);
         detail::cea_init(*this);
         detail::chamb_init(*this);
+        detail::col_urban_init(*this);
         detail::collg_init(*this);
         detail::crast_init(*this);
         detail::denoy_init(*this);

@@ -362,10 +362,19 @@ struct gamma_p_inverse_func
       T f2;
       T div = (a - x - 1) / x;
       f2 = f1;
-      if((fabs(div) > 1) && (tools::max_value<T>() / fabs(div) < f2))
-      {
-         // overflow:
-         f2 = -tools::max_value<T>() / 2;
+     if(fabs(div) > 1)
+     {
+         // split if statement to address M1 mac clang bug;
+         // see issue 826
+         if (tools::max_value<T>() / fabs(div) < f2)
+         {
+            // overflow:
+            f2 = -tools::max_value<T>() / 2;
+         }
+         else
+         {
+            f2 *= div;
+         }
       }
       else
       {
@@ -433,7 +442,7 @@ T gamma_p_inv_imp(T a, T p, const Policy& pol)
    //
    // Go ahead and iterate:
    //
-   boost::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
+   std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
    guess = tools::halley_iterate(
       detail::gamma_p_inverse_func<T, Policy>(a, p, false),
       guess,
@@ -492,7 +501,7 @@ T gamma_q_inv_imp(T a, T q, const Policy& pol)
    //
    // Go ahead and iterate:
    //
-   boost::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
+   std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
    guess = tools::halley_iterate(
       detail::gamma_p_inverse_func<T, Policy>(a, q, true),
       guess,

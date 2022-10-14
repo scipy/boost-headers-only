@@ -42,7 +42,7 @@ count_valid(
 
     while(end - p >= 16)
     {
-        __m128i v1 = _mm_loadu_si128( (__m128i const*)p ); 
+        __m128i v1 = _mm_loadu_si128( (__m128i const*)p );
         __m128i v2 = _mm_cmpeq_epi8( v1, q1 ); // quote
         __m128i v3 = _mm_cmpeq_epi8( v1, q2 ); // backslash
         __m128i v4 = _mm_or_si128( v2, v3 ); // combine quotes and backslash
@@ -131,7 +131,7 @@ count_valid<false>(
             continue;
         }
         // validate utf-8
-        uint16_t first = classify_utf8(c & 0x7F);
+        uint16_t first = classify_utf8(c);
         uint8_t len = first & 0xFF;
         if(BOOST_JSON_UNLIKELY(end - p < len))
             break;
@@ -180,7 +180,7 @@ count_valid<false>(
             continue;
         }
         // validate utf-8
-        uint16_t first = classify_utf8(c & 0x7F);
+        uint16_t first = classify_utf8(c);
         uint8_t len = first & 0xFF;
         if(BOOST_JSON_UNLIKELY(end - p < len))
             break;
@@ -214,7 +214,7 @@ count_unescaped(
 
     while( n >= 16 )
     {
-        __m128i v1 = _mm_loadu_si128( (__m128i const*)s ); 
+        __m128i v1 = _mm_loadu_si128( (__m128i const*)s );
         __m128i v2 = _mm_cmpeq_epi8( v1, q1 ); // quote
         __m128i v3 = _mm_cmpeq_epi8( v1, q2 ); // backslash
         __m128i v4 = _mm_or_si128( v2, v3 ); // combine quotes and backslash

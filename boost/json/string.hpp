@@ -45,7 +45,7 @@ class value;
     String iterators are regular `char` pointers.
 
     @note `string` member functions do not validate
-    any UTF-8 byte sequences passed to them. 
+    any UTF-8 byte sequences passed to them.
 
     @par Thread Safety
 
@@ -153,7 +153,7 @@ public:
         @par Exception Safety
         No-throw guarantee.
     */
-    ~string()
+    ~string() noexcept
     {
         impl_.destroy(sp_);
     }
@@ -182,7 +182,7 @@ public:
         This is more efficient than move construction, when
         it is known that the moved-from object will be
         immediately destroyed afterwards.
-        
+
         @par Complexity
         Constant.
 
@@ -419,10 +419,10 @@ public:
         using move semantics. Ownership of the underlying
         memory is transferred.
         The container acquires shared ownership of the
-        @ref memory_resource used by `other`. After construction, 
+        @ref memory_resource used by `other`. After construction,
         the moved-from string behaves as if newly
         constructed with its current memory resource.
-        
+
         @par Complexity
 
         Constant.
@@ -475,7 +475,7 @@ public:
         storage_ptr sp);
 
     /** Constructor.
-    
+
         Construct the contents with those of a
         string view. This view can contain
         null characters.
@@ -902,7 +902,7 @@ public:
     {
         if(pos >= size())
             detail::throw_out_of_range(
-                BOOST_CURRENT_LOCATION);
+                BOOST_JSON_SOURCE_POS);
         return impl_.data()[pos];
     }
 
@@ -928,7 +928,7 @@ public:
     {
         if(pos >= size())
             detail::throw_out_of_range(
-                BOOST_CURRENT_LOCATION);
+                BOOST_JSON_SOURCE_POS);
         return impl_.data()[pos];
     }
 
@@ -942,7 +942,7 @@ public:
         Constant.
 
         @par Precondition
-        
+
         @code
         pos >= size
         @endcode
@@ -1081,11 +1081,11 @@ public:
     /** Return the underlying character array directly.
 
         Returns a pointer to the underlying array
-        serving as storage. 
-        
+        serving as storage.
+
         @note The value returned is such that
         the range `{data(), data() + size())` is always a
-        valid range, even if the container is empty. 
+        valid range, even if the container is empty.
         The value returned from
         this function is never equal to `nullptr`.
 
@@ -1133,6 +1133,25 @@ public:
     {
         return {data(), size()};
     }
+
+#if ! defined(BOOST_NO_CXX17_HDR_STRING_VIEW)
+    /** Convert to a `std::string_view` referring to the string.
+
+        Returns a string view to the underlying character string. The size of
+        the view does not include the null terminator.
+
+        This overload is not defined when `BOOST_NO_CXX17_HDR_STRING_VIEW`
+        is defined.
+
+        @par Complexity
+
+        Constant.
+    */
+    operator std::string_view() const noexcept
+    {
+        return {data(), size()};
+    }
+#endif
 
     //------------------------------------------------------
     //
@@ -1251,7 +1270,7 @@ public:
         corresponds to the last character of the
         non-reversed container.
         If the container is empty, @ref rend() is returned.
-        
+
         @par Complexity
         Constant.
 
@@ -1270,7 +1289,7 @@ public:
         corresponds to the last character of the
         non-reversed container.
         If the container is empty, @ref rend() is returned.
-        
+
         @par Complexity
         Constant.
 
@@ -1289,7 +1308,7 @@ public:
         corresponds to the last character of the
         non-reversed container.
         If the container is empty, @ref crend() is returned.
-      
+
         @par Complexity
         Constant.
 
@@ -1306,10 +1325,10 @@ public:
 
         Returns the pointed-to character that corresponds
         to the character preceding the first character of
-        the non-reversed container. 
+        the non-reversed container.
         This character acts as a placeholder, attempting
         to access it results in undefined behavior.
-        
+
         @par Complexity
         Constant.
 
@@ -1326,7 +1345,7 @@ public:
 
         Returns the pointed-to character that corresponds
         to the character preceding the first character of
-        the non-reversed container. 
+        the non-reversed container.
         This character acts as a placeholder, attempting
         to access it results in undefined behavior.
 
@@ -1346,10 +1365,10 @@ public:
 
         Returns the pointed-to character that corresponds
         to the character preceding the first character of
-        the non-reversed container. 
+        the non-reversed container.
         This character acts as a placeholder, attempting
         to access it results in undefined behavior.
-        
+
         @par Complexity
         Constant.
 
@@ -1475,8 +1494,8 @@ public:
 
         This performs a non-binding request to reduce
         @ref capacity() to @ref size(). The request may
-        or may not be fulfilled. 
-        
+        or may not be fulfilled.
+
         @par Complexity
 
         At most, linear in @ref size().
@@ -1501,8 +1520,8 @@ public:
 
         Erases all characters from the string. After this
         call, @ref size() returns zero but @ref capacity()
-        is unchanged. 
-        
+        is unchanged.
+
         @par Complexity
 
         Linear in @ref size().
@@ -1546,7 +1565,7 @@ public:
         string_view sv);
 
     /** Insert a character.
-        
+
         Inserts `count` copies of `ch` at the position `pos`.
 
         @par Exception Safety
@@ -1656,7 +1675,7 @@ public:
     //------------------------------------------------------
 
     /** Erase characters from the string.
-        
+
         Erases `num` characters from the string, starting
         at `pos`.  `num` is determined as the smaller of
         `count` and `size() - pos`.
@@ -1677,7 +1696,7 @@ public:
         @param count The number of characters to erase.
         The default argument for this parameter
         is @ref npos.
-        
+
         @throw std::out_of_range `pos > size()`
     */
     BOOST_JSON_DECL
@@ -1687,7 +1706,7 @@ public:
         std::size_t count = npos);
 
     /** Erase a character from the string.
-        
+
         Erases the character at `pos`.
 
         @par Precondition
@@ -1753,15 +1772,15 @@ public:
     //------------------------------------------------------
 
     /** Append a character.
-        
+
         Appends a character to the end of the string.
 
         @par Exception Safety
 
         Strong guarantee.
-        
+
         @param ch The character to append.
-        
+
         @throw std::length_error `size() + 1 > max_size()`
     */
     BOOST_JSON_DECL
@@ -1769,7 +1788,7 @@ public:
     push_back(char ch);
 
     /** Remove the last character.
-        
+
         Removes a character from the end of the string.
 
         @par Precondition
@@ -1785,7 +1804,7 @@ public:
     //------------------------------------------------------
 
     /** Append characters to the string.
-        
+
         Appends `count` copies of `ch` to the end of
         the string.
 
@@ -1907,7 +1926,7 @@ public:
     //------------------------------------------------------
 
     /** Compare a string with the string.
-        
+
         Let `comp` be
         `std::char_traits<char>::compare(data(), sv.data(), std::min(size(), sv.size())`.
         If `comp != 0`, then the result is `comp`. Otherwise,
@@ -1926,7 +1945,7 @@ public:
     int
     compare(string_view sv) const noexcept
     {
-        return string_view(*this).compare(sv);
+        return subview().compare(sv);
     }
 
     //------------------------------------------------------
@@ -2013,7 +2032,7 @@ public:
         Strong guarantee.
 
         @note All references, pointers, or iterators
-        referring to contained elements are invalidated. 
+        referring to contained elements are invalidated.
         Any past-the-end iterators are also invalidated.
 
         @return `*this`
@@ -2207,7 +2226,7 @@ public:
 
     //------------------------------------------------------
 
-    /** Return a substring.
+    /** Return a view.
 
         Returns a view of a substring.
 
@@ -2215,8 +2234,7 @@ public:
 
         Strong guarantee.
 
-        @return A `string_view` object referring 
-        to `{data() + pos, std::min(count, size() - pos))`.
+        @return `this->subview().substr(pos, count)`
 
         @param pos The index to being the substring at.
         The default argument for this parameter is `0`.
@@ -2229,10 +2247,26 @@ public:
     */
     string_view
     subview(
-        std::size_t pos = 0,
-        std::size_t count = npos) const
+        std::size_t pos
+        ,std::size_t count = npos) const
     {
-        return string_view(*this).substr(pos, count);
+        return subview().substr(pos, count);
+    }
+
+    /** Return a view.
+
+        Returns a view of the whole string.
+
+        @par Exception Safety
+
+        `noexcept`
+
+        @return `string_view(this->data(), this->size())`.
+    */
+    string_view
+    subview() const noexcept
+    {
+        return string_view( data(), size() );
     }
 
     //------------------------------------------------------
@@ -2251,7 +2285,7 @@ public:
 
         @param dest The string to copy to.
 
-        @param pos The index to begin copying from. The 
+        @param pos The index to begin copying from. The
         default argument for this parameter is `0`.
 
         @throw std::out_of_range `pos > max_size()`
@@ -2262,13 +2296,13 @@ public:
         std::size_t count,
         std::size_t pos = 0) const
     {
-        return string_view(*this).copy(dest, count, pos);
+        return subview().copy(dest, count, pos);
     }
 
     //------------------------------------------------------
 
     /** Change the size of the string.
-        
+
         Resizes the string to contain `count` characters.
         If `count > size()`, characters with the value `0`
         are appended. Otherwise, `size()` is reduced
@@ -2384,7 +2418,7 @@ public:
         the contents are logically swapped by making a copy,
         which can throw. In this case all iterators and
         references are invalidated.
-        
+
         @par Effects
         @code
         lhs.swap( rhs );
@@ -2417,7 +2451,7 @@ public:
     //------------------------------------------------------
 
     /** Find the first occurrence of a string within the string.
-        
+
         Returns the lowest index `idx` greater than or equal
         to `pos` where each element of `sv`  is equal to
         that of `{begin() + idx, begin() + idx + sv.size())`
@@ -2441,11 +2475,11 @@ public:
         string_view sv,
         std::size_t pos = 0) const noexcept
     {
-        return string_view(*this).find(sv, pos);
+        return subview().find(sv, pos);
     }
 
     /** Find the first occurrence of a character within the string.
-        
+
         Returns the index corrosponding to the first
         occurrence of `ch` within `{begin() + pos, end())`
         if it exists, and @ref npos otherwise.
@@ -2454,7 +2488,7 @@ public:
 
         Linear.
 
-        @return The first occurrence of `ch` within the 
+        @return The first occurrence of `ch` within the
         string starting at the index `pos`, or @ref npos
         if none exists.
 
@@ -2468,7 +2502,7 @@ public:
         char ch,
         std::size_t pos = 0) const noexcept
     {
-        return string_view(*this).find(ch, pos);
+        return subview().find(ch, pos);
     }
 
     //------------------------------------------------------
@@ -2499,7 +2533,7 @@ public:
         string_view sv,
         std::size_t pos = npos) const noexcept
     {
-        return string_view(*this).rfind(sv, pos);
+        return subview().rfind(sv, pos);
     }
 
     /** Find the last occurrence of a character within the string.
@@ -2527,7 +2561,7 @@ public:
         char ch,
         std::size_t pos = npos) const noexcept
     {
-        return string_view(*this).rfind(ch, pos);
+        return subview().rfind(ch, pos);
     }
 
     //------------------------------------------------------
@@ -2558,7 +2592,7 @@ public:
         string_view sv,
         std::size_t pos = 0) const noexcept
     {
-        return string_view(*this).find_first_of(sv, pos);
+        return subview().find_first_of(sv, pos);
     }
 
     //------------------------------------------------------
@@ -2588,7 +2622,7 @@ public:
         string_view sv,
         std::size_t pos = 0) const noexcept
     {
-        return string_view(*this).find_first_not_of(sv, pos);
+        return subview().find_first_not_of(sv, pos);
     }
 
     /** Find the first occurrence of a character not equal to `ch`.
@@ -2615,7 +2649,7 @@ public:
         char ch,
         std::size_t pos = 0) const noexcept
     {
-        return string_view(*this).find_first_not_of(ch, pos);
+        return subview().find_first_not_of(ch, pos);
     }
 
     //------------------------------------------------------
@@ -2631,7 +2665,7 @@ public:
 
         Linear.
 
-        @return The last occurrence of any of the 
+        @return The last occurrence of any of the
         characters within `sv` within the string starting
         before or at the index `pos`, or @ref npos if
         none exists.
@@ -2647,7 +2681,7 @@ public:
         string_view sv,
         std::size_t pos = npos) const noexcept
     {
-        return string_view(*this).find_last_of(sv, pos);
+        return subview().find_last_of(sv, pos);
     }
 
     //------------------------------------------------------
@@ -2677,7 +2711,7 @@ public:
         string_view sv,
         std::size_t pos = npos) const noexcept
     {
-        return string_view(*this).find_last_not_of(sv, pos);
+        return subview().find_last_not_of(sv, pos);
     }
 
     /** Find the last occurrence of a character not equal to `ch`.
@@ -2691,7 +2725,7 @@ public:
 
         Linear.
 
-        @return The last occurrence of a character that 
+        @return The last occurrence of a character that
         is not equal to `ch` before or at the index `pos`,
         or @ref npos if none exists.
 
@@ -2706,7 +2740,7 @@ public:
         char ch,
         std::size_t pos = npos) const noexcept
     {
-        return string_view(*this).find_last_not_of(ch, pos);
+        return subview().find_last_not_of(ch, pos);
     }
 
 private:
@@ -2743,6 +2777,20 @@ private:
 
 //----------------------------------------------------------
 
+namespace detail
+{
+
+template <>
+inline
+string_view
+to_string_view<string>(string const& s) noexcept
+{
+    return s.subview();
+}
+
+} // namespace detail
+
+
 /** Return true if lhs equals rhs.
 
     A lexicographical comparison is used.
@@ -2752,18 +2800,11 @@ bool
 operator==(string const& lhs, string const& rhs) noexcept
 #else
 template<class T, class U>
-typename std::enable_if<
-    (std::is_same<T, string>::value &&
-     std::is_convertible<
-        U const&, string_view>::value) ||
-    (std::is_same<U, string>::value &&
-     std::is_convertible<
-        T const&, string_view>::value),
-    bool>::type
+detail::string_comp_op_requirement<T, U>
 operator==(T const& lhs, U const& rhs) noexcept
 #endif
 {
-    return string_view(lhs) == string_view(rhs);
+    return detail::to_string_view(lhs) == detail::to_string_view(rhs);
 }
 
 /** Return true if lhs does not equal rhs.
@@ -2775,18 +2816,11 @@ bool
 operator!=(string const& lhs, string const& rhs) noexcept
 #else
 template<class T, class U>
-typename std::enable_if<
-    (std::is_same<T, string>::value &&
-     std::is_convertible<
-        U const&, string_view>::value) ||
-    (std::is_same<U, string>::value &&
-     std::is_convertible<
-        T const&, string_view>::value),
-    bool>::type
+detail::string_comp_op_requirement<T, U>
 operator!=(T const& lhs, U const& rhs) noexcept
 #endif
 {
-    return string_view(lhs) != string_view(rhs);
+    return detail::to_string_view(lhs) != detail::to_string_view(rhs);
 }
 
 /** Return true if lhs is less than rhs.
@@ -2798,18 +2832,11 @@ bool
 operator<(string const& lhs, string const& rhs) noexcept
 #else
 template<class T, class U>
-typename std::enable_if<
-    (std::is_same<T, string>::value &&
-     std::is_convertible<
-        U const&, string_view>::value) ||
-    (std::is_same<U, string>::value &&
-     std::is_convertible<
-        T const&, string_view>::value),
-    bool>::type
+detail::string_comp_op_requirement<T, U>
 operator<(T const& lhs, U const& rhs) noexcept
 #endif
 {
-    return string_view(lhs) < string_view(rhs);
+    return detail::to_string_view(lhs) < detail::to_string_view(rhs);
 }
 
 /** Return true if lhs is less than or equal to rhs.
@@ -2821,18 +2848,11 @@ bool
 operator<=(string const& lhs, string const& rhs) noexcept
 #else
 template<class T, class U>
-typename std::enable_if<
-    (std::is_same<T, string>::value &&
-     std::is_convertible<
-        U const&, string_view>::value) ||
-    (std::is_same<U, string>::value &&
-     std::is_convertible<
-        T const&, string_view>::value),
-    bool>::type
+detail::string_comp_op_requirement<T, U>
 operator<=(T const& lhs, U const& rhs) noexcept
 #endif
 {
-    return string_view(lhs) <= string_view(rhs);
+    return detail::to_string_view(lhs) <= detail::to_string_view(rhs);
 }
 
 #ifdef BOOST_JSON_DOCS
@@ -2840,18 +2860,11 @@ bool
 operator>=(string const& lhs, string const& rhs) noexcept
 #else
 template<class T, class U>
-typename std::enable_if<
-    (std::is_same<T, string>::value &&
-     std::is_convertible<
-        U const&, string_view>::value) ||
-    (std::is_same<U, string>::value &&
-     std::is_convertible<
-        T const&, string_view>::value),
-    bool>::type
+detail::string_comp_op_requirement<T, U>
 operator>=(T const& lhs, U const& rhs) noexcept
 #endif
 {
-    return string_view(lhs) >= string_view(rhs);
+    return detail::to_string_view(lhs) >= detail::to_string_view(rhs);
 }
 
 /** Return true if lhs is greater than rhs.
@@ -2863,18 +2876,11 @@ bool
 operator>(string const& lhs, string const& rhs) noexcept
 #else
 template<class T, class U>
-typename std::enable_if<
-    (std::is_same<T, string>::value &&
-     std::is_convertible<
-        U const&, string_view>::value) ||
-    (std::is_same<U, string>::value &&
-     std::is_convertible<
-        T const&, string_view>::value),
-    bool>::type
+detail::string_comp_op_requirement<T, U>
 operator>(T const& lhs, U const& rhs) noexcept
 #endif
 {
-    return string_view(lhs) > string_view(rhs);
+    return detail::to_string_view(lhs) > detail::to_string_view(rhs);
 }
 
 BOOST_JSON_NS_END
@@ -2899,7 +2905,7 @@ struct hash< ::boost::json::string >
     operator()(::boost::json::string const& js) const noexcept
     {
         return ::boost::json::detail::digest(
-            js.data(), js.size(), salt_);
+            js.begin(), js.end(), salt_);
     }
 
 private:
